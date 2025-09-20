@@ -14,6 +14,7 @@ import { WhatsNextCard } from '@/components/display/WhatsNextCard';
 import { ClosingCard } from '@/components/display/ClosingCard';
 import { useFirestore, getDocument } from '@/hooks/use-firestore';
 import Link from 'next/link';
+import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
 
 function Clock() {
   const [date, setDate] = useState<Date | null>(null);
@@ -103,7 +104,6 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const [animationKey, setAnimationKey] = useState(0);
 
     useEffect(() => {
-        // Total duration is estimated based on letter count + pause time.
         const titleDuration = (data.message.length * 0.06) * 1000;
         const subtitleDelay = 500;
         const subtitleDuration = (data.subtitle?.length || 0) * 0.06 * 1000;
@@ -162,17 +162,53 @@ function DefaultDisplay() {
     return <WelcomeCard data={displayMessage} />;
 }
 
-const DisplayWrapper = ({ children }: { children: React.ReactNode }) => {
+const ImageSlideshow = () => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImageIndex(prev => (prev + 1) % PlaceHolderImages.length);
+        }, 7000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+         <AnimatePresence>
+            <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5 }}
+                className="absolute inset-0"
+            >
+                <Image
+                    src={PlaceHolderImages[currentImageIndex].imageUrl}
+                    alt={PlaceHolderImages[currentImageIndex].description}
+                    fill
+                    className="object-cover"
+                    priority
+                />
+            </motion.div>
+        </AnimatePresence>
+    )
+}
+
+const DisplayWrapper = ({ children, backgroundType }: { children: React.ReactNode, backgroundType: 'image' | 'video' }) => {
     return (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden text-white p-8">
             <div className="absolute inset-0">
-                <video
-                    src="https://i.imgur.com/txtUi6G.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    className="w-full h-full object-cover"
-                />
+                {backgroundType === 'video' ? (
+                     <video
+                        src="https://i.imgur.com/txtUi6G.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <ImageSlideshow />
+                )}
             </div>
             <div className="absolute inset-0 bg-black/50" />
 
@@ -223,8 +259,10 @@ export function TvDisplay() {
         ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` 
         : 'loading';
 
+    const backgroundType = liveDisplayItem?.type === 'closing' ? 'video' : 'image';
+
     return (
-        <DisplayWrapper>
+        <DisplayWrapper backgroundType={backgroundType}>
             <AnimatePresence mode="wait">
                 <motion.div
                     key={animationKey}
