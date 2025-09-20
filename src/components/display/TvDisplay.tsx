@@ -19,21 +19,21 @@ function Clock() {
   const [date, setDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    const updateClock = () => {
+    // This code now runs only on the client, after the component has mounted.
+    const timer = setInterval(() => {
       setDate(new Date());
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
+    }, 1000);
+    setDate(new Date());
     return () => clearInterval(timer);
   }, []);
 
-  
-  const time = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-  const dateString = date ? date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
-
-  if (date === null) {
+  if (!date) {
+    // Render a placeholder on the server and initial client render
     return <div className="text-right text-white" style={{width: '250px'}}>&nbsp;</div>;
   }
+  
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateString = date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="text-right text-white drop-shadow-md">
@@ -103,7 +103,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const [animationKey, setAnimationKey] = useState(0);
 
     useEffect(() => {
-        const totalDuration = (data.message.length + (data.subtitle?.length || 0)) * 0.06 + 4000; // Animation time + pause
+        const totalDuration = (data.message.length + (data.subtitle?.length || 0)) * 0.06 + 4000;
         const interval = setInterval(() => {
             setAnimationKey(prev => prev + 1);
         }, totalDuration);
@@ -253,4 +253,3 @@ export function TvDisplay() {
         </AnimatePresence>
     );
 }
-

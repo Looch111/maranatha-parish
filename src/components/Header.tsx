@@ -10,21 +10,21 @@ function Clock() {
   const [date, setDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    const updateClock = () => {
+    // This code now runs only on the client, after the component has mounted.
+    const timer = setInterval(() => {
       setDate(new Date());
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
+    }, 1000);
+    setDate(new Date()); // Set initial time
     return () => clearInterval(timer);
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs once on mount
 
-  
-  const time = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-  const dateString = date ? date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
-
-  if (date === null) {
+  if (!date) {
+    // Render a placeholder or nothing on the server and initial client render
     return <div className="text-right text-primary-foreground" style={{width: '250px'}}>&nbsp;</div>;
   }
+  
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateString = date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="text-right text-primary-foreground">
@@ -38,15 +38,10 @@ function Clock() {
 export function Header() {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const isTvDisplay = pathname === '/';
-
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  if (isTvDisplay) {
-    return null;
-  }
 
   return (
     <header className={'bg-primary text-primary-foreground shadow-lg sticky top-0 z-50'}>

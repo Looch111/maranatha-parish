@@ -31,6 +31,8 @@ function EventForm({ event, onOpenChange }: { event?: Event, onOpenChange: (open
       formRef.current?.reset();
     }
   }, [state, toast, onOpenChange]);
+  
+  const defaultDate = event ? format(new Date(event.date), 'yyyy-MM-dd') : '';
 
   return (
     <form ref={formRef} action={formAction}>
@@ -44,7 +46,7 @@ function EventForm({ event, onOpenChange }: { event?: Event, onOpenChange: (open
         <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="date">Date</Label>
-                <Input id="date" name="date" type="date" defaultValue={event ? format(new Date(event.date), 'yyyy-MM-dd') : ''} required />
+                <Input id="date" name="date" type="date" defaultValue={defaultDate} required />
                 {state?.type === 'error' && state.errors?.date && <p className="text-sm font-medium text-destructive">{state.errors.date.join(', ')}</p>}
             </div>
             <div className="grid gap-2">

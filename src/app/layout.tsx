@@ -18,11 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const [isTvDisplay, setIsTvDisplay] = useState(false);
-  
-  useEffect(() => {
-    setIsTvDisplay(pathname === '/');
-  }, [pathname]);
+  const isTvDisplay = pathname === '/';
 
   return (
     <html lang="en" className="h-full">
