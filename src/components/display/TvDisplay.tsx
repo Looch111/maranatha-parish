@@ -2,7 +2,6 @@
 'use client';
 
 import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, LiveDisplayItem } from '@/lib/types';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -13,8 +12,7 @@ import { EventsCard } from '@/components/display/EventsCard';
 import { HymnCard } from '@/components/display/HymnCard';
 import { BibleVerseCard } from '@/components/display/BibleVerseCard';
 import { WhatsNextCard } from '@/components/display/WhatsNextCard';
-import { useFirestore } from '@/hooks/use-firestore';
-import { getDocument } from '@/hooks/use-firestore';
+import { useFirestore, getDocument } from '@/hooks/use-firestore';
 import Link from 'next/link';
 
 function Clock() {
@@ -45,10 +43,18 @@ function Clock() {
   );
 }
 
-
 function WelcomeCard({ data }: { data: WelcomeMessage }) {
-    const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
-    
+    const welcomeImages = PlaceHolderImages.filter(img => img.imageHint.includes('church'));
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImageIndex(prevIndex => (prevIndex + 1) % welcomeImages.length);
+        }, 7000); // Change image every 7 seconds
+
+        return () => clearInterval(interval);
+    }, [welcomeImages.length]);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: (i = 1) => ({
@@ -100,17 +106,26 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     };
 
     return (
-        <div className="relative w-full h-screen flex items-center justify-center">
-            {welcomeImage && (
-                <Image
-                    src={welcomeImage.imageUrl}
-                    alt={welcomeImage.description}
-                    fill
-                    className="object-cover"
-                    data-ai-hint={welcomeImage.imageHint}
-                    priority
-                />
-            )}
+        <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+             <AnimatePresence>
+                <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.5 }}
+                    className="absolute inset-0"
+                >
+                    <Image
+                        src={welcomeImages[currentImageIndex].imageUrl}
+                        alt={welcomeImages[currentImageIndex].description}
+                        fill
+                        className="object-cover"
+                        data-ai-hint={welcomeImages[currentImageIndex].imageHint}
+                        priority={currentImageIndex === 0}
+                    />
+                </motion.div>
+            </AnimatePresence>
             <div className="absolute inset-0 bg-black/50" />
 
             <header className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start">
@@ -186,21 +201,19 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
 export function TvDisplay() {
     const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
     
-    // Determine a unique key for the animation. This ensures a re-render when the item changes.
     const animationKey = liveDisplayItem 
         ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` 
         : 'loading';
 
-    // Conditionally apply full-screen styles only for the welcome screen.
     const isWelcomeScreen = !liveDisplayItem || liveDisplayItem.type === 'none' || liveDisplayItem.type === 'welcome';
 
     return (
         <AnimatePresence mode="wait">
             <motion.div
                 key={animationKey}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
                 className={isWelcomeScreen ? 'h-screen' : 'container mx-auto py-8'}
             >

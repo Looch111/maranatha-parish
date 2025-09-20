@@ -5,6 +5,12 @@
       "description": "A beautiful and welcoming view from inside a church, looking towards stained glass windows.",
       "imageUrl": "https://i.imgur.com/gje3GtW.jpeg",
       "imageHint": "church interior"
+    },
+    {
+      "id": "church-interior-2",
+      "description": "The interior of a modern church with pews and a large screen.",
+      "imageUrl": "https://i.imgur.com/pGx6Xbw.jpeg",
+      "imageHint": "church sanctuary"
     }
   ]
 }
