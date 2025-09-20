@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 
 export type WelcomeMessage = {
   id: string; // Should be a singleton document, e.g., 'main'
@@ -9,7 +8,7 @@ export type Announcement = {
   id: string;
   title: string;
   content: string;
-  createdAt: Timestamp;
+  createdAt: string; // Using string for mock data
 };
 
 export type Event = {

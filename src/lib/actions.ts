@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { db } from '@/lib/firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+// import { db } from '@/lib/firebase';
+// import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import { filterInappropriateContent } from '@/ai/flows/filter-inappropriate-content';
 
@@ -54,8 +54,7 @@ export async function updateWelcomeMessageAction(prevState: FormState, formData:
   }
 
   try {
-    const welcomeRef = doc(db, 'content', 'welcome');
-    await setDoc(welcomeRef, { message: validatedFields.data.message }, { merge: true });
+    console.log('Simulating update welcome message:', validatedFields.data.message);
     revalidatePath('/');
     revalidatePath('/admin');
     return { type: 'success', message: 'Welcome message updated successfully!' };
@@ -91,14 +90,9 @@ export async function saveAnnouncementAction(prevState: FormState, formData: For
 
   try {
     if (id) {
-      const announcementRef = doc(db, 'announcements', id);
-      await updateDoc(announcementRef, { title, content });
+       console.log('Simulating update announcement:', { id, title, content });
     } else {
-      await addDoc(collection(db, 'announcements'), {
-        title,
-        content,
-        createdAt: serverTimestamp(),
-      });
+       console.log('Simulating add announcement:', { title, content });
     }
     revalidatePath('/');
     revalidatePath('/admin');
@@ -111,7 +105,7 @@ export async function saveAnnouncementAction(prevState: FormState, formData: For
 export async function deleteAnnouncementAction(id: string) {
     if (!id) return { type: 'error', message: 'Announcement ID is missing.' };
     try {
-        await deleteDoc(doc(db, 'announcements', id));
+        console.log('Simulating delete announcement:', id);
         revalidatePath('/');
         revalidatePath('/admin');
         return { type: 'success', message: 'Announcement deleted.' };
@@ -148,9 +142,9 @@ export async function saveEventAction(prevState: any, formData: FormData): Promi
 
     try {
         if (id) {
-            await updateDoc(doc(db, 'events', id), data);
+            console.log('Simulating update event:', { id, ...data });
         } else {
-            await addDoc(collection(db, 'events'), data);
+            console.log('Simulating add event:', data);
         }
         revalidatePath('/');
         revalidatePath('/admin');
@@ -163,7 +157,7 @@ export async function saveEventAction(prevState: any, formData: FormData): Promi
 export async function deleteEventAction(id: string) {
     if (!id) return { type: 'error', message: 'Event ID is missing.' };
     try {
-        await deleteDoc(doc(db, 'events', id));
+        console.log('Simulating delete event:', id);
         revalidatePath('/');
         revalidatePath('/admin');
         return { type: 'success', message: 'Event deleted.' };

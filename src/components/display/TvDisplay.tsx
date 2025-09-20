@@ -1,16 +1,28 @@
 'use client';
 
-import { useFirestore } from '@/hooks/use-firestore';
 import type { WelcomeMessage } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
+
+// Mock Data since Firebase is disconnected
+const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to Maranatha!' };
 
 function WelcomeSection() {
-    const welcomeData = useFirestore<WelcomeMessage>('content/welcome');
+    const [welcomeData, setWelcomeData] = useState<WelcomeMessage | null>(null);
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
+    
+    useEffect(() => {
+        // Simulate fetching data
+        const timer = setTimeout(() => {
+            setWelcomeData(mockWelcomeMessage);
+        }, 1000); // Simulate network delay
+        return () => clearTimeout(timer);
+    }, []);
+
 
     return (
         <Card className="h-full relative overflow-hidden flex items-center justify-center text-center p-0 rounded-none border-0">
