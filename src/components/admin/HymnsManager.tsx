@@ -1,6 +1,7 @@
+
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveHymnAction, deleteHymnAction } from '@/lib/actions';
 import type { Hymn } from '@/lib/types';
@@ -30,7 +31,7 @@ function SubmitButton() {
 function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(saveHymnAction, { type: 'idle' });
+  const [state, formAction] = useActionState(saveHymnAction, { type: 'idle' });
   const [verses, setVerses] = useState<string[]>(hymn?.lyrics || ['']);
 
   const addVerse = () => setVerses([...verses, '']);

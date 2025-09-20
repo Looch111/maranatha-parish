@@ -1,7 +1,8 @@
+
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateWhatsNextAction } from '@/lib/actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ function SubmitButton() {
 
 export function WhatsNextForm({ initialData }: { initialData: WhatsNext }) {
   const { toast } = useToast();
-  const [state, formAction] = useFormState(updateWhatsNextAction, { type: 'idle' });
+  const [state, formAction] = useActionState(updateWhatsNextAction, { type: 'idle' });
 
   useEffect(() => {
     if (state.type === 'success') {
@@ -63,7 +64,7 @@ export function WhatsNextForm({ initialData }: { initialData: WhatsNext }) {
            )}
           <SubmitButton />
         </CardFooter>
-      </Card>
+      </card>
     </form>
   );
 }

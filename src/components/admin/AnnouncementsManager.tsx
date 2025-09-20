@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveAnnouncementAction, deleteAnnouncementAction } from '@/lib/actions';
 import type { Announcement } from '@/lib/types';
@@ -31,7 +31,7 @@ function SubmitButton() {
 function AnnouncementForm({ announcement, onOpenChange }: { announcement?: Announcement, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(saveAnnouncementAction, { type: 'idle' });
+  const [state, formAction] = useActionState(saveAnnouncementAction, { type: 'idle' });
 
   useEffect(() => {
     if (state.type === 'success') {

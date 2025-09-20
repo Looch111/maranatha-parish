@@ -1,6 +1,7 @@
+
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveBibleVerseAction, deleteBibleVerseAction } from '@/lib/actions';
 import type { BibleVerse } from '@/lib/types';
@@ -30,7 +31,7 @@ function SubmitButton() {
 function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useFormState(saveBibleVerseAction, { type: 'idle' });
+  const [state, formAction] = useActionState(saveBibleVerseAction, { type: 'idle' });
 
   useEffect(() => {
     if (state.type === 'success') {
