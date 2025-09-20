@@ -13,7 +13,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
             <Church className="h-6 w-6" />
-            <span className="font-headline">ParishView</span>
+            <span className="font-headline">Maranatha Parish</span>
           </Link>
           <nav className="flex items-center gap-2">
             <Button asChild variant={pathname === '/' ? 'secondary' : 'ghost'}>
