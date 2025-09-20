@@ -192,7 +192,7 @@ export function TvDisplay() {
         <div className="h-full bg-background relative">
             <AnimatePresence>
                 <motion.div
-                    key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
+                    key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplaya.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
