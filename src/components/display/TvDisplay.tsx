@@ -21,33 +21,31 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
     
     return (
-        <Card className="w-full shadow-lg overflow-hidden">
-            <div className="relative h-64 sm:h-80 md:h-96 w-full">
-                {welcomeImage && (
-                    <Image
-                        src={welcomeImage.imageUrl}
-                        alt={welcomeImage.description}
-                        fill
-                        className="object-cover"
-                        data-ai-hint={welcomeImage.imageHint}
-                        priority
-                    />
-                )}
-                <div className="absolute inset-0 bg-black/50" />
-                <div className="relative z-10 flex items-center justify-center text-center h-full p-4">
-                    <div className='text-white'>
-                        <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg">
-                            {data.message}
-                        </h1>
-                        {data.subtitle && (
-                            <p className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md">
-                                {data.subtitle}
-                            </p>
-                        )}
-                    </div>
+        <div className="relative w-full h-full min-h-[calc(100vh-10rem)] flex items-center justify-center">
+            {welcomeImage && (
+                <Image
+                    src={welcomeImage.imageUrl}
+                    alt={welcomeImage.description}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={welcomeImage.imageHint}
+                    priority
+                />
+            )}
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="relative z-10 text-center p-4">
+                <div className='text-white'>
+                    <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg">
+                        {data.message}
+                    </h1>
+                    {data.subtitle && (
+                        <p className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md">
+                            {data.subtitle}
+                        </p>
+                    )}
                 </div>
             </div>
-        </Card>
+        </div>
     );
 }
 
@@ -118,11 +116,12 @@ export function TvDisplay() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.5 }}
+                    className="h-full"
                 >
                     {liveDisplayItem ? (
                         <LiveItemDisplay item={liveDisplayItem} />
                     ) : (
-                        <Skeleton className="h-96 w-full" />
+                        <DefaultDisplay />
                     )}
                 </motion.div>
             </AnimatePresence>
