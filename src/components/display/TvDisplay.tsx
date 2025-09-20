@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, DisplayItem, LiveDisplayItem } from '@/lib/types';
@@ -22,7 +23,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
     
     return (
-        <Card className="h-full w-full relative overflow-hidden flex items-center justify-center text-center p-0 rounded-none border-0">
+        <div className="h-full w-full relative overflow-hidden flex items-center justify-center text-center p-0">
             {welcomeImage && (
                  <Image
                     src={welcomeImage.imageUrl}
@@ -34,7 +35,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
                 />
             )}
             <div className="absolute inset-0 bg-black/50" />
-            <CardContent className="relative z-10 text-white p-8">
+            <div className="relative z-10 text-white p-8">
                  <AnimatePresence mode="wait">
                     <motion.div
                         key={data.message}
@@ -55,8 +56,8 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
                         </div>
                     </motion.div>
                 </AnimatePresence>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
