@@ -49,6 +49,56 @@ function Clock() {
 function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
     
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: (i = 1) => ({
+            opacity: 1,
+            transition: { staggerChildren: 0.06, delayChildren: i * 0.04 },
+        }),
+    };
+
+    const childVariants = {
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: 'spring',
+                damping: 12,
+                stiffness: 100,
+            },
+        },
+        hidden: {
+            opacity: 0,
+            y: 20,
+            transition: {
+                type: 'spring',
+                damping: 12,
+                stiffness: 100,
+            },
+        },
+    };
+
+    const AnimatedText = ({ text, el: Wrapper = 'p', className, delay = 0 }: { text: string, el?: React.ElementType, className?: string, delay?: number }) => {
+        const letters = Array.from(text);
+        return (
+            <motion.div
+                style={{ display: 'flex', overflow: 'hidden' }}
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                custom={delay}
+            >
+                <Wrapper className={className}>
+                    {letters.map((letter, index) => (
+                        <motion.span key={index} variants={childVariants}>
+                            {letter === ' ' ? '\u00A0' : letter}
+                        </motion.span>
+                    ))}
+                </Wrapper>
+            </motion.div>
+        );
+    };
+
     return (
         <div className="relative w-full h-screen flex items-center justify-center">
             {welcomeImage && (
@@ -73,13 +123,9 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
 
             <div className="relative z-10 text-center">
                 <div className='text-white'>
-                    <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg">
-                        {data.message}
-                    </h1>
+                    <AnimatedText text={data.message} el="h1" className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg flex" />
                     {data.subtitle && (
-                        <p className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md">
-                            {data.subtitle}
-                        </p>
+                         <AnimatedText text={data.subtitle} el="p" className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md flex" delay={data.message.length} />
                     )}
                 </div>
             </div>
