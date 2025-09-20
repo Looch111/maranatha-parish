@@ -1,3 +1,5 @@
-export default function Home() {
-  return <></>;
+import { TvDisplay } from "@/components/display/TvDisplay";
+
+export default function HomePage() {
+  return <TvDisplay />;
 }

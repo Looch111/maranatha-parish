@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "church-welcome",
+      "description": "A beautiful and welcoming view from inside a church, looking towards the altar.",
+      "imageUrl": "https://picsum.photos/seed/church-welcome/1280/720",
+      "imageHint": "church interior"
+    }
+  ]
 }
