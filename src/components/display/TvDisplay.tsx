@@ -9,7 +9,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 
 // Mock Data since Firebase is disconnected
-const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to church we are glad to have you here' };
+const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'footer we are glad to have you here' };
 
 function WelcomeSection() {
     const [welcomeData, setWelcomeData] = useState<WelcomeMessage | null>(null);
