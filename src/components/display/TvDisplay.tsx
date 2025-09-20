@@ -23,7 +23,7 @@ function Clock() {
     const timer = setInterval(() => {
       setDate(new Date());
     }, 1000);
-    setDate(new Date());
+    setDate(new Date()); // Set initial time
     return () => clearInterval(timer);
   }, []);
 
@@ -176,9 +176,9 @@ const DisplayWrapper = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden text-white p-8">
-            <AnimatePresence>
+            <div className="absolute inset-0">
                 {welcomeImages.map((image, index) => (
-                     <motion.div
+                    <motion.div
                         key={image.id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
@@ -195,7 +195,7 @@ const DisplayWrapper = ({ children }: { children: React.ReactNode }) => {
                         />
                     </motion.div>
                 ))}
-            </AnimatePresence>
+            </div>
             <div className="absolute inset-0 bg-black/50" />
 
             <header className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start">
@@ -244,23 +244,23 @@ export function TvDisplay() {
         : 'loading';
 
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                key={animationKey}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className={'h-screen'}
-            >
-                <DisplayWrapper>
+        <DisplayWrapper>
+            <AnimatePresence>
+                <motion.div
+                    key={animationKey}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className={'w-full h-full flex items-center justify-center'}
+                >
                     {liveDisplayItem ? (
                         <LiveItemDisplay item={liveDisplayItem} />
                     ) : (
                         <DefaultDisplay />
                     )}
-                </DisplayWrapper>
-            </motion.div>
-        </AnimatePresence>
+                </motion.div>
+            </AnimatePresence>
+        </DisplayWrapper>
     );
 }
