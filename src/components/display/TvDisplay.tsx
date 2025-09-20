@@ -35,7 +35,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
                 />
             )}
             <div className="absolute inset-0 bg-black/50" />
-            <div className="relative z-10 text-white p-8">
+            <div className="relative z-10 text-white">
                  <AnimatePresence mode="wait">
                     <motion.div
                         key={data.message}
@@ -189,23 +189,21 @@ export function TvDisplay() {
     const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
 
     return (
-        <div className="h-full bg-background relative">
-            <AnimatePresence>
-                <motion.div
-                    key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3 }}
-                    className="h-full w-full"
-                >
-                    {liveDisplayItem ? (
-                        <LiveItemDisplay item={liveDisplayItem} />
-                    ) : (
-                        <DefaultCarouselDisplay />
-                    )}
-                </motion.div>
-            </AnimatePresence>
-        </div>
+        <AnimatePresence>
+            <motion.div
+                key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="h-full w-full"
+            >
+                {liveDisplayItem ? (
+                    <LiveItemDisplay item={liveDisplayItem} />
+                ) : (
+                    <DefaultCarouselDisplay />
+                )}
+            </motion.div>
+        </AnimatePresence>
     );
 }
