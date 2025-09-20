@@ -1,3 +1,4 @@
+
 'use client';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,11 +16,17 @@ export default function AdminPage() {
     const whatsNext = useFirestore<WhatsNext>('content/whats-next');
     const closingMessage = useFirestore<ClosingMessage>('content/closing');
 
-    // Simplified loading state: check only a few key collections.
-    const loading = announcements === null || events === null || hymns === null || closingMessage === null;
+    // More robust loading state: check all required data sources.
+    const loading = welcomeMessage === null || 
+                    announcements === null || 
+                    events === null || 
+                    hymns === null || 
+                    bibleVerses === null || 
+                    whatsNext === null || 
+                    closingMessage === null;
     
     // Check if essential content is empty after loading.
-    const isDataEmpty = !loading && (announcements?.length === 0 && events?.length === 0 && hymns?.length === 0);
+    const isDataEmpty = !loading && (announcements.length === 0 && events.length === 0 && hymns.length === 0);
 
     // Default values for initialization, used as fallbacks.
     const defaultWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
