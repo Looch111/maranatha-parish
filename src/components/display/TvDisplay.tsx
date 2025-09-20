@@ -173,23 +173,27 @@ const ImageSlideshow = () => {
     }, []);
 
     return (
-         <AnimatePresence>
-            <motion.div
-                key={currentImageIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.5 }}
-                className="absolute inset-0"
-            >
-                <Image
-                    src={PlaceHolderImages[currentImageIndex].imageUrl}
-                    alt={PlaceHolderImages[currentImageIndex].description}
-                    fill
-                    className="object-cover"
-                    priority
-                />
-            </motion.div>
+         <AnimatePresence initial={false} mode="wait">
+            {PlaceHolderImages.map((image, index) => (
+                index === currentImageIndex && (
+                <motion.div
+                    key={image.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.5 }}
+                    className="absolute inset-0"
+                >
+                    <Image
+                        src={image.imageUrl}
+                        alt={image.description}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                </motion.div>
+                )
+            ))}
         </AnimatePresence>
     )
 }
@@ -239,7 +243,7 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
         case 'hymn':
             return <HymnCard data={item.data as Hymn} currentVerseIndex={item.currentVerseIndex} />;
         case 'bible-verse':
-            return <BibleVerseCard data={item.data as BibleVerse} />;
+            return <BibleVerseCard data={item.data as BibleVerse} currentVerseIndex={item.currentVerseIndex} />;
         case 'whats-next':
             return <WhatsNextCard data={item.data as WhatsNext} />;
         case 'closing':
