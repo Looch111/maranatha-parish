@@ -6,11 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 function Clock() {
-  const [time, setTime] = useState<string | null>(null);
+  const [date, setDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const updateClock = () => {
-      setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      setDate(new Date());
     };
     updateClock();
     const timer = setInterval(updateClock, 1000);
@@ -18,14 +18,18 @@ function Clock() {
   }, []);
 
   const isTvDisplay = usePathname() === '/';
+  
+  const time = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+  const dateString = date ? date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
 
-  if (time === null) {
-    return <div className={`text-2xl font-semibold ${isTvDisplay ? 'text-white' : 'text-foreground'}`} style={{width: '100px'}}>&nbsp;</div>;
+  if (date === null) {
+    return <div className={`text-right ${isTvDisplay ? 'text-white' : 'text-foreground'}`} style={{width: '250px'}}>&nbsp;</div>;
   }
 
   return (
-    <div className={`text-2xl font-semibold ${isTvDisplay ? 'text-white' : 'text-foreground'}`}>
-      {time}
+    <div className={`text-right ${isTvDisplay ? 'text-white' : 'text-foreground'}`}>
+      <div className="text-2xl font-semibold">{time}</div>
+      <div className="text-sm">{dateString}</div>
     </div>
   );
 }
