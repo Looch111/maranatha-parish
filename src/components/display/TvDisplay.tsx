@@ -5,17 +5,16 @@ import type { Announcement, Event, WelcomeMessage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
-import { Calendar, Megaphone, Clock } from 'lucide-react';
+import { Megaphone } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { format } from 'date-fns';
 
 function WelcomeSection() {
     const welcomeData = useFirestore<WelcomeMessage>('content/welcome');
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
 
     return (
-        <Card className="col-span-1 lg:col-span-2 row-span-1 relative overflow-hidden flex items-center justify-center text-center p-0 min-h-[300px] lg:min-h-0">
+        <Card className="col-span-1 lg:col-span-2 row-span-1 relative overflow-hidden flex items-center justify-center text-center p-0 min-h-[300px]">
             {welcomeImage && (
                  <Image
                     src={welcomeImage.imageUrl}
@@ -56,7 +55,7 @@ function WelcomeSection() {
 function AnnouncementsSection() {
     const announcements = useFirestore<Announcement>('announcements', 'createdAt');
     return (
-         <Card className="col-span-1 row-span-1 lg:row-span-2 flex flex-col min-h-[400px] lg:min-h-0">
+         <Card className="col-span-1 lg:col-span-2 row-span-1 flex flex-col min-h-[400px]">
             <CardHeader className="flex-shrink-0">
                 <CardTitle className="flex items-center gap-2 font-headline text-2xl"><Megaphone /> Announcements</CardTitle>
             </CardHeader>
@@ -92,58 +91,12 @@ function AnnouncementsSection() {
     )
 }
 
-function ScheduleSection() {
-    const events = useFirestore<Event>('events', 'date');
-    const upcomingEvents = events?.filter(e => new Date(e.date) >= new Date(new Date().toDateString())) || [];
-
-    return (
-        <Card className="col-span-1 row-span-1 lg:row-span-2 flex flex-col min-h-[400px] lg:min-h-0">
-            <CardHeader className="flex-shrink-0">
-                <CardTitle className="flex items-center gap-2 font-headline text-2xl"><Calendar /> Upcoming Events</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow overflow-y-auto space-y-4">
-                 <AnimatePresence>
-                    {events && upcomingEvents.length > 0 ? upcomingEvents.slice(0, 10).map((evt, i) => (
-                        <motion.div
-                             key={evt.id}
-                             layout
-                             initial={{ opacity: 0, y: 50 }}
-                             animate={{ opacity: 1, y: 0 }}
-                             exit={{ opacity: 0, y: -50 }}
-                             transition={{ duration: 0.3, delay: i * 0.1 }}
-                             className="p-4 rounded-lg border bg-card"
-                        >
-                            <h3 className="font-bold text-lg text-primary">{evt.name}</h3>
-                            <p className="text-muted-foreground font-semibold text-sm">{format(new Date(evt.date), 'EEEE, MMMM do, yyyy')}</p>
-                            <div className="flex items-center text-muted-foreground text-sm gap-2 mt-1">
-                                <Clock className="h-4 w-4" />
-                                <span>{evt.time} at {evt.location}</span>
-                            </div>
-                        </motion.div>
-                    )) : (
-                      events ? (
-                        <div className="text-center text-muted-foreground h-full flex items-center justify-center">No upcoming events.</div>
-                      ) : Array.from({ length: 4 }).map((_, i) => (
-                         <div key={i} className="p-4 rounded-lg border space-y-2">
-                           <Skeleton className="h-5 w-3/4" />
-                           <Skeleton className="h-4 w-1/2" />
-                           <Skeleton className="h-4 w-2/3" />
-                        </div>
-                      ))
-                    )}
-                 </AnimatePresence>
-            </CardContent>
-        </Card>
-    );
-}
-
 export function TvDisplay() {
     return (
         <div className="h-full p-4 lg:p-6 bg-background">
-            <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-[auto_1fr] lg:grid-rows-2 gap-4 lg:gap-6 h-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-2 gap-4 lg:gap-6 h-full">
                 <WelcomeSection />
                 <AnnouncementsSection />
-                <ScheduleSection />
             </div>
         </div>
     );
