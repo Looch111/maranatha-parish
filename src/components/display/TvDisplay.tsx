@@ -17,6 +17,34 @@ import { useFirestore } from '@/hooks/use-firestore';
 import { getDocument } from '@/hooks/use-firestore';
 import Link from 'next/link';
 
+function Clock() {
+  const [date, setDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const updateClock = () => {
+      setDate(new Date());
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  
+  const time = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+  const dateString = date ? date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
+
+  if (date === null) {
+    return <div className="text-right text-white" style={{width: '250px'}}>&nbsp;</div>;
+  }
+
+  return (
+    <div className="text-right text-white drop-shadow-md">
+      <div className="text-3xl font-semibold">{time}</div>
+      <div className="text-base">{dateString}</div>
+    </div>
+  );
+}
+
 
 function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
@@ -35,14 +63,15 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
             )}
             <div className="absolute inset-0 bg-black/50" />
 
-            <div className="absolute top-0 left-0 p-8">
+            <header className="absolute top-0 left-0 right-0 p-8 flex justify-between items-start">
                  <Link href="/" className="flex items-center gap-3 text-2xl font-bold text-white">
                     <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={50} height={50} className="h-12 w-12 bg-white rounded-full p-1" />
                     <span className="font-headline text-5xl drop-shadow-md">Maranatha Parish</span>
                 </Link>
-            </div>
+                <Clock />
+            </header>
 
-            <div className="relative z-10 text-center p-4">
+            <div className="relative z-10 text-center">
                 <div className='text-white'>
                     <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg">
                         {data.message}
@@ -119,7 +148,8 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
 
 export function TvDisplay() {
     const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
-
+    const isWelcomeScreen = !liveDisplayItem || liveDisplayItem.type === 'none' || liveDisplayItem.type === 'welcome';
+    
     return (
         <AnimatePresence mode="wait">
             <motion.div
@@ -128,7 +158,7 @@ export function TvDisplay() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className="h-full"
+                className={isWelcomeScreen ? 'h-screen' : ''}
             >
                 {liveDisplayItem ? (
                     <LiveItemDisplay item={liveDisplayItem} />
