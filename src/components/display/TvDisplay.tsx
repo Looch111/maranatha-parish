@@ -21,7 +21,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
     
     return (
-        <div className="relative w-full h-full min-h-[calc(100vh-10rem)] flex items-center justify-center">
+        <div className="relative w-full h-screen flex items-center justify-center">
             {welcomeImage && (
                 <Image
                     src={welcomeImage.imageUrl}
@@ -108,23 +108,21 @@ export function TvDisplay() {
     const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
 
     return (
-        <div className="container mx-auto py-8 px-4">
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
-                    className="h-full"
-                >
-                    {liveDisplayItem ? (
-                        <LiveItemDisplay item={liveDisplayItem} />
-                    ) : (
-                        <DefaultDisplay />
-                    )}
-                </motion.div>
-            </AnimatePresence>
-        </div>
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="h-full"
+            >
+                {liveDisplayItem ? (
+                    <LiveItemDisplay item={liveDisplayItem} />
+                ) : (
+                    <DefaultDisplay />
+                )}
+            </motion.div>
+        </AnimatePresence>
     );
 }
