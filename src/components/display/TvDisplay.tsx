@@ -49,6 +49,10 @@ const containerVariants = {
         opacity: 1,
         transition: { staggerChildren: 0.06, delayChildren: i * 0.04 },
     }),
+    exit: {
+      opacity: 0,
+      transition: { duration: 0.5 }
+    }
 };
 
 const childVariants = {
@@ -72,19 +76,21 @@ const childVariants = {
     },
 };
 
-const AnimatedText = ({ text, el: Wrapper = 'p', className, delay = 0 }: { text: string, el?: React.ElementType, className?: string, delay?: number }) => {
+const AnimatedText = ({ text, el: Wrapper = 'p', className, delay = 0, keyAffix }: { text: string, el?: React.ElementType, className?: string, delay?: number, keyAffix: string }) => {
     const letters = Array.from(text);
     return (
         <motion.div
+            key={keyAffix}
             style={{ display: 'flex', overflow: 'hidden' }}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
+            exit="exit"
             custom={delay}
         >
             <Wrapper className={className}>
                 {letters.map((letter, index) => (
-                    <motion.span key={index} variants={childVariants}>
+                    <motion.span key={`${keyAffix}-${index}`} variants={childVariants}>
                         {letter === ' ' ? '\u00A0' : letter}
                     </motion.span>
                 ))}
@@ -94,13 +100,26 @@ const AnimatedText = ({ text, el: Wrapper = 'p', className, delay = 0 }: { text:
 };
 
 function WelcomeCard({ data }: { data: WelcomeMessage }) {
+    const [animationKey, setAnimationKey] = useState(0);
+
+    useEffect(() => {
+        const totalDuration = (data.message.length + (data.subtitle?.length || 0)) * 0.06 + 4000; // Animation time + pause
+        const interval = setInterval(() => {
+            setAnimationKey(prev => prev + 1);
+        }, totalDuration);
+
+        return () => clearInterval(interval);
+    }, [data]);
+
     return (
         <div className="relative z-10 text-center">
             <div className='text-white'>
-                <AnimatedText text={data.message} el="h1" className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg flex" />
-                {data.subtitle && (
-                     <AnimatedText text={data.subtitle} el="p" className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md flex" delay={data.message.length} />
-                )}
+                <AnimatePresence>
+                    <AnimatedText keyAffix={`title-${animationKey}`} text={data.message} el="h1" className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg flex" />
+                    {data.subtitle && (
+                         <AnimatedText keyAffix={`subtitle-${animationKey}`} text={data.subtitle} el="p" className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md flex" delay={data.message.length} />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
@@ -234,3 +253,4 @@ export function TvDisplay() {
         </AnimatePresence>
     );
 }
+
