@@ -5,23 +5,19 @@ import { Megaphone } from 'lucide-react';
 
 export function AnnouncementsCard({ data }: { data: Announcement[] }) {
     return (
-        <Card className="w-full shadow-lg">
-            <CardHeader>
-                <div className="flex items-center gap-4">
-                    <Megaphone className="h-8 w-8 text-primary" />
-                    <CardTitle className="text-3xl font-headline">Announcements</CardTitle>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-6">
-                    {data.map((ann) => (
-                        <li key={ann.id}>
-                            <h3 className="text-2xl font-bold text-primary">{ann.title}</h3>
-                            <p className="text-lg mt-1 text-foreground/80">{ann.content}</p>
-                        </li>
-                    ))}
-                </ul>
-            </CardContent>
-        </Card>
+        <div className="w-full max-w-4xl bg-black/30 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-2xl">
+            <div className="flex items-center gap-4 mb-8">
+                <Megaphone className="h-12 w-12 text-white" />
+                <h1 className="text-5xl font-headline text-white drop-shadow-lg">Announcements</h1>
+            </div>
+            <ul className="space-y-8">
+                {data.map((ann) => (
+                    <li key={ann.id} className="border-l-4 border-amber-400 pl-6">
+                        <h3 className="text-4xl font-bold text-white">{ann.title}</h3>
+                        <p className="text-2xl mt-2 text-white/80 leading-relaxed">{ann.content}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }

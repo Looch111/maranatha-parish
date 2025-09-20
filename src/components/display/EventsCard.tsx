@@ -2,31 +2,26 @@
 import type { Event } from '@/lib/types';
 import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function EventsCard({ data }: { data: Event[] }) {
     return (
-        <Card className="w-full shadow-lg">
-            <CardHeader>
-                 <div className="flex items-center gap-4">
-                    <Calendar className="h-8 w-8 text-primary" />
-                    <CardTitle className="text-3xl font-headline">Upcoming Events</CardTitle>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-4">
-                    {data.map((event) => (
-                        <li key={event.id} className="p-4 rounded-lg bg-secondary/50 border">
-                            <h3 className="text-xl font-bold text-primary">{event.name}</h3>
-                            <div className="text-base mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                                <p><strong>Date:</strong> {format(new Date(event.date), 'EEE, MMM d, yyyy')}</p>
-                                <p><strong>Time:</strong> {event.time}</p>
-                                <p className="md:col-span-2"><strong>Location:</strong> {event.location}</p>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </CardContent>
-        </Card>
+        <div className="w-full max-w-4xl bg-black/30 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-2xl">
+            <div className="flex items-center gap-4 mb-8">
+                <Calendar className="h-12 w-12 text-white" />
+                <h1 className="text-5xl font-headline text-white drop-shadow-lg">Upcoming Events</h1>
+            </div>
+            <ul className="space-y-6">
+                {data.map((event) => (
+                    <li key={event.id} className="p-6 rounded-lg bg-black/20 border border-white/10">
+                        <h3 className="text-3xl font-bold text-amber-400">{event.name}</h3>
+                        <div className="text-xl text-white/90 mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                            <p><strong>Date:</strong> {format(new Date(event.date), 'EEE, MMM d, yyyy')}</p>
+                            <p><strong>Time:</strong> {event.time}</p>
+                            <p className="md:col-span-2"><strong>Location:</strong> {event.location}</p>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }
