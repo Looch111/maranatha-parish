@@ -1,13 +1,18 @@
-// IMPORTANT: Create a .env.local file in the root of your project and add your Firebase project's configuration.
-// Example .env.local file:
-// NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-// NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-auth-domain"
-// NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
-// NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
-// NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-messaging-sender-id"
-// NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
-// Firebase is temporarily disconnected for structural development.
-const db = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyDlbeO-lWkgVHAckFfNuFr6h8vjFZUMG70",
+  authDomain: "login-and-sign-up-e39e4.firebaseapp.com",
+  projectId: "login-and-sign-up-e39e4",
+  storageBucket: "login-and-sign-up-e39e4.firebasestorage.app",
+  messagingSenderId: "1025789251454",
+  appId: "1:1025789251454:web:c1fc71cd021b02b37b6d2f",
+  measurementId: "G-WDK25Z3R6E"
+};
+
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
 
 export { db };

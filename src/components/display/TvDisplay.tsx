@@ -1,7 +1,6 @@
-
 'use client';
 
-import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, DisplayItem } from '@/lib/types';
+import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, DisplayItem, LiveDisplayItem } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
@@ -15,25 +14,8 @@ import { HymnCard } from '@/components/display/HymnCard';
 import { BibleVerseCard } from '@/components/display/BibleVerseCard';
 import { WhatsNextCard } from '@/components/display/WhatsNextCard';
 import Autoplay from "embla-carousel-autoplay";
-
-// Mock Data since Firebase is disconnected
-const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
-const mockAnnouncements: Announcement[] = [
-    { id: '1', title: 'Sunday Service', content: 'Join us for our weekly Sunday service at 10:00 AM.', createdAt: new Date() },
-    { id: '2', title: 'Bake Sale', content: 'Support our youth group by buying some delicious baked goods after the service.', createdAt: new Date() },
-];
-const mockEvents: Event[] = [
-    { id: '1', name: 'Youth Group Meeting', date: '2024-08-15', time: '18:00', location: 'Parish Hall' },
-    { id: '2', name: 'Charity Drive', date: '2024-08-20', time: '09:00', location: 'Church Parking Lot' },
-];
-const mockHymns: Hymn[] = [
-    { id: '1', title: 'Amazing Grace', lyrics: ['Amazing grace! How sweet the sound,', 'That saved a wretch like me.'] },
-    { id: '2', title: 'How Great Thou Art', lyrics: ['O Lord my God, when I in awesome wonder,', 'Consider all the worlds Thy Hands have made;'] },
-];
-const mockBibleVerses: BibleVerse[] = [
-    { id: '1', reference: 'John 3:16', text: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.' },
-];
-const mockWhatsNext: WhatsNext = { id: 'whats-next', message: 'Up next: Sermon by Pastor John' };
+import { useFirestore } from '@/hooks/use-firestore';
+import { getCollection, getDocument } from '@/hooks/use-firestore';
 
 
 function TypingEffect({ text, className }: { text: string, className: string }) {
@@ -126,42 +108,58 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     );
 }
 
-export function TvDisplay() {
+
+function DefaultCarouselDisplay() {
     const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
-
+    
     useEffect(() => {
-        // Simulate fetching data
-        const timer = setTimeout(() => {
+        const fetchAllContent = async () => {
+            setLoading(true);
+            const [
+                welcome,
+                announcements,
+                events,
+                hymns,
+                bibleVerses,
+                whatsNext
+            ] = await Promise.all([
+                getDocument<WelcomeMessage>('content/welcome'),
+                getCollection<Announcement>('announcements'),
+                getCollection<Event>('events'),
+                getCollection<Hymn>('hymns'),
+                getCollection<BibleVerse>('bible-verses'),
+                getDocument<WhatsNext>('content/whats-next'),
+            ]);
+
             const items: DisplayItem[] = [];
-            if (mockWelcomeMessage) items.push({ type: 'welcome', data: mockWelcomeMessage });
-            if (mockAnnouncements?.length > 0) items.push({ type: 'announcements', data: mockAnnouncements });
-            if (mockEvents?.length > 0) items.push({ type: 'events', data: mockEvents });
-            if (mockHymns?.length > 0) {
-                 mockHymns.forEach(hymn => items.push({ type: 'hymn', data: hymn }));
+            if (welcome) items.push({ type: 'welcome', data: welcome });
+            if (announcements?.length > 0) items.push({ type: 'announcements', data: announcements });
+            if (events?.length > 0) items.push({ type: 'events', data: events });
+            if (hymns?.length > 0) {
+                 hymns.forEach(hymn => items.push({ type: 'hymn', data: hymn }));
             }
-            if (mockBibleVerses?.length > 0) {
-                mockBibleVerses.forEach(verse => items.push({ type: 'bible-verse', data: verse }));
+            if (bibleVerses?.length > 0) {
+                bibleVerses.forEach(verse => items.push({ type: 'bible-verse', data: verse }));
             }
-            if (mockWhatsNext) items.push({ type: 'whats-next', data: mockWhatsNext });
+            if (whatsNext) items.push({ type: 'whats-next', data: whatsNext });
 
             setDisplayItems(items);
             setLoading(false);
-        }, 1000); // Simulate network delay
+        }
 
-        return () => clearTimeout(timer);
+        fetchAllContent();
     }, []);
 
-     useEffect(() => {
+    useEffect(() => {
         if (!api) return;
         setCurrent(api.selectedScrollSnap() + 1);
         api.on("select", () => {
             setCurrent(api.selectedScrollSnap() + 1);
         });
     }, [api]);
-
 
     if (loading) {
         return (
@@ -171,9 +169,14 @@ export function TvDisplay() {
         )
     }
 
+    if (displayItems.length === 0) {
+        const defaultWelcome: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
+        return <WelcomeCard data={defaultWelcome} />
+    }
+
     return (
-        <div className="h-full bg-background relative">
-           <Carousel 
+        <div className="h-full w-full relative">
+            <Carousel 
                 setApi={setApi}
                 className="h-full w-full"
                 plugins={[
@@ -186,20 +189,70 @@ export function TvDisplay() {
                 <CarouselContent className="h-full">
                     {displayItems.map((item, index) => (
                         <CarouselItem key={index} className="h-full">
-                            {item.type === 'welcome' && <WelcomeCard data={item.data} />}
-                            {item.type === 'announcements' && <AnnouncementsCard data={item.data} />}
-                            {item.type === 'events' && <EventsCard data={item.data} />}
-                            {item.type === 'hymn' && <HymnCard data={item.data} />}
-                            {item.type === 'bible-verse' && <BibleVerseCard data={item.data} />}
-                            {item.type === 'whats-next' && <WhatsNextCard data={item.data} />}
+                            {item.type === 'welcome' && <WelcomeCard data={item.data as WelcomeMessage} />}
+                            {item.type === 'announcements' && <AnnouncementsCard data={item.data as Announcement[]} />}
+                            {item.type === 'events' && <EventsCard data={item.data as Event[]} />}
+                            {item.type === 'hymn' && <HymnCard data={item.data as Hymn} />}
+                            {item.type === 'bible-verse' && <BibleVerseCard data={item.data as BibleVerse} />}
+                            {item.type === 'whats-next' && <WhatsNextCard data={item.data as WhatsNext} />}
                         </CarouselItem>
                     ))}
                 </CarouselContent>
             </Carousel>
-             <div className="absolute bottom-4 right-4 text-white/70 text-xs font-mono z-10">
+            <div className="absolute bottom-4 right-4 text-white/70 text-xs font-mono z-10">
                 {current} / {displayItems.length}
             </div>
         </div>
-    );
+    )
 }
 
+function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
+    switch (item.type) {
+        case 'welcome':
+            return <WelcomeCard data={item.data as WelcomeMessage} />;
+        case 'announcements':
+            return <AnnouncementsCard data={item.data as Announcement[]} />;
+        case 'events':
+            return <EventsCard data={item.data as Event[]} />;
+        case 'hymn':
+            return <HymnCard data={item.data as Hymn} currentVerseIndex={item.currentVerseIndex} />;
+        case 'bible-verse':
+            return <BibleVerseCard data={item.data as BibleVerse} />;
+        case 'whats-next':
+            return <WhatsNextCard data={item.data as WhatsNext} />;
+        case 'none':
+            return <DefaultCarouselDisplay />;
+        default:
+            return (
+                <div className="h-full w-full flex items-center justify-center bg-background">
+                   <p>Waiting for content...</p>
+                </div>
+           );
+    }
+}
+
+
+export function TvDisplay() {
+    const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
+
+    return (
+        <div className="h-full bg-background relative">
+            <AnimatePresence>
+                <motion.div
+                    key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-full w-full"
+                >
+                    {liveDisplayItem ? (
+                        <LiveItemDisplay item={liveDisplayItem} />
+                    ) : (
+                        <DefaultCarouselDisplay />
+                    )}
+                </motion.div>
+            </AnimatePresence>
+        </div>
+    );
+}

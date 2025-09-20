@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
@@ -7,6 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { setLiveDisplayAction, stopLiveDisplayAction } from '@/lib/actions';
+import { useFirestore } from '@/hooks/use-firestore';
+import type { LiveDisplayItem } from '@/lib/types';
 
 interface LiveControlManagerProps {
     initialWelcomeMessage: WelcomeMessage;
@@ -69,8 +71,12 @@ export function LiveControlManager({
     initialWhatsNext,
 }: LiveControlManagerProps) {
     const { toast } = useToast();
-    const [nowPlaying, setNowPlaying] = useState<DisplayItem | null>(null);
-    const [currentVerse, setCurrentVerse] = useState(0);
+    const liveDisplay = useFirestore<LiveDisplayItem>('live/current');
+    
+    // We keep a local state for hymn verse to react instantly in the UI
+    const [hymnVerseState, setHymnVerseState] = useState<{ [key: string]: number }>({});
+
+    const nowPlaying = liveDisplay && liveDisplay.type !== 'none' ? liveDisplay : null;
 
     const allContent: DisplayItem[] = [
         { type: 'welcome', data: initialWelcomeMessage },
@@ -81,40 +87,76 @@ export function LiveControlManager({
         { type: 'whats-next', data: initialWhatsNext }
     ].filter(item => item && item.data);
 
-    const handleDisplay = (item: DisplayItem) => {
-        setNowPlaying(item);
-        setCurrentVerse(0); // Reset verse on new item
-        console.log('Displaying:', item);
-        toast({
-            title: "Display Sent",
-            description: `"${getTitle(item)}" is now live. (This is a simulation)`,
-        });
-    }
-
-    const handleStop = () => {
-        const stoppedItem = nowPlaying;
-        setNowPlaying(null);
-        if (stoppedItem) {
+    const handleDisplay = async (item: DisplayItem) => {
+        let verseIndex: number | undefined = undefined;
+        if (item.type === 'hymn') {
+            verseIndex = 0;
+            setHymnVerseState(prev => ({ ...prev, [item.id!]: 0 }));
+        }
+        const result = await setLiveDisplayAction(item, verseIndex);
+        if (result.type === 'success') {
             toast({
-                title: "Display Stopped",
-                description: `"${getTitle(stoppedItem)}" is no longer live.`,
+                title: "Display Sent",
+                description: `"${getTitle(item)}" is now live.`,
+            });
+        } else {
+             toast({
+                title: "Error",
+                description: result.message,
                 variant: 'destructive',
             });
         }
     }
 
-    const changeVerse = (direction: 'next' | 'prev') => {
+    const handleStop = async () => {
+        const stoppedItem = nowPlaying;
+        const result = await stopLiveDisplayAction();
+        if (result.type === 'success') {
+            if (stoppedItem) {
+                 toast({
+                    title: "Display Stopped",
+                    description: `"${getTitle(stoppedItem as DisplayItem)}" is no longer live.`,
+                    variant: 'destructive',
+                });
+            }
+        } else {
+             toast({
+                title: "Error",
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
+    }
+
+    const changeVerse = async (direction: 'next' | 'prev') => {
         if (nowPlaying?.type === 'hymn') {
             const hymn = nowPlaying.data as Hymn;
+            const hymnId = hymn.id;
+            
+            // Use local state for immediate UI feedback, but get current index from DB if not in local state
+            const currentVerse = hymnVerseState[hymnId] ?? nowPlaying.currentVerseIndex ?? 0;
+
             const newVerseIndex = direction === 'next'
                 ? (currentVerse + 1) % hymn.lyrics.length
                 : (currentVerse - 1 + hymn.lyrics.length) % hymn.lyrics.length;
-            setCurrentVerse(newVerseIndex);
-            console.log(`Displaying Verse ${newVerseIndex + 1} of "${hymn.title}"`);
-            toast({
-                title: "Verse Changed",
-                description: `Now showing verse ${newVerseIndex + 1}.`,
-            });
+
+            setHymnVerseState(prev => ({ ...prev, [hymnId]: newVerseIndex }));
+            
+            const result = await setLiveDisplayAction(nowPlaying as DisplayItem, newVerseIndex);
+             if (result.type === 'success') {
+                toast({
+                    title: "Verse Changed",
+                    description: `Now showing verse ${newVerseIndex + 1}.`,
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: result.message,
+                    variant: 'destructive',
+                });
+                 // Revert local state if DB update fails
+                setHymnVerseState(prev => ({ ...prev, [hymnId]: currentVerse }));
+            }
         }
     }
 
@@ -138,7 +180,7 @@ export function LiveControlManager({
                         </TableHeader>
                         <TableBody>
                             {allContent.map((item, index) => {
-                                const isPlaying = nowPlaying?.type === item.type && nowPlaying?.id === item.id;
+                                const isPlaying = nowPlaying?.type === item.type && (item.type !== 'hymn' && item.type !== 'bible-verse' || (nowPlaying.data as any).id === item.id);
                                 return (
                                     <TableRow key={index} className={isPlaying ? 'bg-accent/50' : ''}>
                                         <TableCell className="font-medium">

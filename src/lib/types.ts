@@ -1,4 +1,4 @@
-
+import { Timestamp } from 'firebase/firestore';
 
 export type WelcomeMessage = {
   id: string; // Should be a singleton document, e.g., 'main'
@@ -10,7 +10,7 @@ export type Announcement = {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
+  createdAt: Timestamp;
 };
 
 export type Event = {
@@ -45,3 +45,8 @@ export type DisplayItem =
     | { type: 'hymn', data: Hymn }
     | { type: 'bible-verse', data: BibleVerse }
     | { type: 'whats-next', data: WhatsNext };
+
+export type LiveDisplayItem = (DisplayItem | { type: 'none', data: null }) & {
+    timestamp: Timestamp;
+    currentVerseIndex?: number;
+};

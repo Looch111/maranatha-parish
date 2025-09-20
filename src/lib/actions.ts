@@ -1,10 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-// import { db } from '@/lib/firebase';
-// import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import { filterInappropriateContent } from '@/ai/flows/filter-inappropriate-content';
+import type { DisplayItem } from '@/lib/types';
 
 type FormState = {
   type: 'idle' | 'success' | 'error';
@@ -27,6 +28,40 @@ const checkContent = async (message: string) => {
         return { isAppropriate: true };
     }
 };
+
+// Live Display Actions
+export async function setLiveDisplayAction(item: DisplayItem, currentVerseIndex?: number) {
+    try {
+        const liveDisplayRef = doc(db, 'live', 'current');
+        const dataToSet: any = {
+            type: item.type,
+            data: item.data,
+            timestamp: serverTimestamp()
+        };
+        if (item.type === 'hymn' && currentVerseIndex !== undefined) {
+            dataToSet.currentVerseIndex = currentVerseIndex;
+        }
+        await setDoc(liveDisplayRef, dataToSet);
+        revalidatePath('/');
+        return { type: 'success', message: `Displaying "${item.type}" now.` };
+    } catch (error) {
+        console.error("Error setting live display:", error);
+        return { type: 'error', message: 'Failed to update live display.' };
+    }
+}
+
+export async function stopLiveDisplayAction() {
+    try {
+        const liveDisplayRef = doc(db, 'live', 'current');
+        await setDoc(liveDisplayRef, { type: 'none', timestamp: serverTimestamp() });
+        revalidatePath('/');
+        return { type: 'success', message: 'Live display stopped.' };
+    } catch (error) {
+        console.error("Error stopping live display:", error);
+        return { type: 'error', message: 'Failed to stop live display.' };
+    }
+}
+
 
 // Welcome Message Actions
 const WelcomeSchema = z.object({
@@ -57,8 +92,8 @@ export async function updateWelcomeMessageAction(prevState: FormState, formData:
   }
 
   try {
-    console.log('Simulating update welcome message:', validatedFields.data);
-    revalidatePath('/');
+    const welcomeRef = doc(db, 'content', 'welcome');
+    await setDoc(welcomeRef, validatedFields.data, { merge: true });
     revalidatePath('/admin');
     return { type: 'success', message: 'Welcome message updated successfully!' };
   } catch (error) {
@@ -93,11 +128,12 @@ export async function saveAnnouncementAction(prevState: FormState, formData: For
 
   try {
     if (id) {
-       console.log('Simulating update announcement:', { id, title, content });
+       const announcementRef = doc(db, 'announcements', id);
+       await updateDoc(announcementRef, { title, content });
     } else {
-       console.log('Simulating add announcement:', { title, content });
+       const announcementCollection = collection(db, 'announcements');
+       await addDoc(announcementCollection, { title, content, createdAt: serverTimestamp() });
     }
-    revalidatePath('/');
     revalidatePath('/admin');
     return { type: 'success', message: `Announcement ${id ? 'updated' : 'added'} successfully!` };
   } catch (error) {
@@ -108,8 +144,8 @@ export async function saveAnnouncementAction(prevState: FormState, formData: For
 export async function deleteAnnouncementAction(id: string) {
     if (!id) return { type: 'error', message: 'Announcement ID is missing.' };
     try {
-        console.log('Simulating delete announcement:', id);
-        revalidatePath('/');
+        const announcementRef = doc(db, 'announcements', id);
+        await deleteDoc(announcementRef);
         revalidatePath('/admin');
         return { type: 'success', message: 'Announcement deleted.' };
     } catch (e) {
@@ -145,11 +181,12 @@ export async function saveEventAction(prevState: any, formData: FormData): Promi
 
     try {
         if (id) {
-            console.log('Simulating update event:', { id, ...data });
+            const eventRef = doc(db, 'events', id);
+            await updateDoc(eventRef, data);
         } else {
-            console.log('Simulating add event:', data);
+            const eventCollection = collection(db, 'events');
+            await addDoc(eventCollection, data);
         }
-        revalidatePath('/');
         revalidatePath('/admin');
         return { type: 'success', message: `Event ${id ? 'updated' : 'saved'} successfully!` };
     } catch (error) {
@@ -160,8 +197,8 @@ export async function saveEventAction(prevState: any, formData: FormData): Promi
 export async function deleteEventAction(id: string) {
     if (!id) return { type: 'error', message: 'Event ID is missing.' };
     try {
-        console.log('Simulating delete event:', id);
-        revalidatePath('/');
+        const eventRef = doc(db, 'events', id);
+        await deleteDoc(eventRef);
         revalidatePath('/admin');
         return { type: 'success', message: 'Event deleted.' };
     } catch (e) {
@@ -201,11 +238,12 @@ export async function saveHymnAction(prevState: FormState, formData: FormData): 
 
     try {
         if (id) {
-            console.log('Simulating update hymn:', { id, title, lyrics: validatedLyrics });
+            const hymnRef = doc(db, 'hymns', id);
+            await updateDoc(hymnRef, { title, lyrics: validatedLyrics });
         } else {
-            console.log('Simulating add hymn:', { title, lyrics: validatedLyrics });
+            const hymnCollection = collection(db, 'hymns');
+            await addDoc(hymnCollection, { title, lyrics: validatedLyrics });
         }
-        revalidatePath('/');
         revalidatePath('/admin');
         return { type: 'success', message: `Hymn ${id ? 'updated' : 'added'} successfully!` };
     } catch (error) {
@@ -216,8 +254,8 @@ export async function saveHymnAction(prevState: FormState, formData: FormData): 
 export async function deleteHymnAction(id: string) {
     if (!id) return { type: 'error', message: 'Hymn ID is missing.' };
     try {
-        console.log('Simulating delete hymn:', id);
-        revalidatePath('/');
+        const hymnRef = doc(db, 'hymns', id);
+        await deleteDoc(hymnRef);
         revalidatePath('/admin');
         return { type: 'success', message: 'Hymn deleted.' };
     } catch (e) {
@@ -253,11 +291,12 @@ export async function saveBibleVerseAction(prevState: FormState, formData: FormD
 
     try {
         if (id) {
-            console.log('Simulating update Bible verse:', { id, reference, text });
+            const verseRef = doc(db, 'bible-verses', id);
+            await updateDoc(verseRef, { reference, text });
         } else {
-            console.log('Simulating add Bible verse:', { reference, text });
+            const verseCollection = collection(db, 'bible-verses');
+            await addDoc(verseCollection, { reference, text });
         }
-        revalidatePath('/');
         revalidatePath('/admin');
         return { type: 'success', message: `Bible verse ${id ? 'updated' : 'added'} successfully!` };
     } catch (error) {
@@ -268,8 +307,8 @@ export async function saveBibleVerseAction(prevState: FormState, formData: FormD
 export async function deleteBibleVerseAction(id: string) {
     if (!id) return { type: 'error', message: 'Bible verse ID is missing.' };
     try {
-        console.log('Simulating delete Bible verse:', id);
-        revalidatePath('/');
+        const verseRef = doc(db, 'bible-verses', id);
+        await deleteDoc(verseRef);
         revalidatePath('/admin');
         return { type: 'success', message: 'Bible verse deleted.' };
     } catch (e) {
@@ -303,8 +342,8 @@ export async function updateWhatsNextAction(prevState: FormState, formData: Form
   }
 
   try {
-    console.log('Simulating update what\'s next message:', validatedFields.data);
-    revalidatePath('/');
+    const whatsNextRef = doc(db, 'content', 'whats-next');
+    await setDoc(whatsNextRef, validatedFields.data, { merge: true });
     revalidatePath('/admin');
     return { type: 'success', message: 'What\'s next message updated successfully!' };
   } catch (error) {
