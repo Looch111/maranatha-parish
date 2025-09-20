@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -75,6 +75,14 @@ export function LiveControlManager({
     
     // We keep a local state for hymn verse to react instantly in the UI
     const [hymnVerseState, setHymnVerseState] = useState<{ [key: string]: number }>({});
+    
+    useEffect(() => {
+        if (liveDisplay && liveDisplay.type === 'hymn' && liveDisplay.currentVerseIndex !== undefined) {
+             const hymnId = (liveDisplay.data as Hymn).id;
+             setHymnVerseState(prev => ({...prev, [hymnId]: liveDisplay.currentVerseIndex!}));
+        }
+    }, [liveDisplay]);
+
 
     const nowPlaying = liveDisplay && liveDisplay.type !== 'none' ? liveDisplay : null;
 
@@ -206,7 +214,7 @@ export function LiveControlManager({
                                                     <Button variant="destructive" size="sm" onClick={handleStop}>Stop</Button>
                                                 </>
                                             ) : (
-                                                <Button variant="outline" size="sm" onClick={() => handleDisplay(item)} disabled={!!nowPlaying}>
+                                                <Button variant="outline" size="sm" onClick={() => handleDisplay(item)}>
                                                     <Tv className="mr-2 h-4 w-4" /> Display Now
                                                 </Button>
                                             )}
