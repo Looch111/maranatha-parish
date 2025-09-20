@@ -1,17 +1,31 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Hymn } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Music, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export function HymnCard({ data }: { data: Hymn }) {
+export function HymnCard({ data, currentVerseIndex }: { data: Hymn, currentVerseIndex?: number }) {
     const [currentVerse, setCurrentVerse] = useState(0);
 
-    const nextVerse = () => setCurrentVerse(prev => (prev + 1) % data.lyrics.length);
-    const prevVerse = () => setCurrentVerse(prev => (prev - 1 + data.lyrics.length) % data.lyrics.length);
+    useEffect(() => {
+        if (currentVerseIndex !== undefined) {
+            setCurrentVerse(currentVerseIndex);
+        }
+    }, [currentVerseIndex]);
+
+    // If no verse index is passed, we can cycle through them for preview
+     useEffect(() => {
+        if (currentVerseIndex !== undefined) return;
+
+        const interval = setInterval(() => {
+            setCurrentVerse(prev => (prev + 1) % data.lyrics.length);
+        }, 5000); // Change verse every 5 seconds for preview
+
+        return () => clearInterval(interval);
+    }, [data.lyrics.length, currentVerseIndex]);
+
 
     return (
         <div className="h-full w-full flex items-center justify-center p-8 bg-gradient-to-br from-green-500 to-teal-600">
@@ -22,7 +36,7 @@ export function HymnCard({ data }: { data: Hymn }) {
                         <CardTitle className="text-5xl font-headline">{data.title}</CardTitle>
                     </div>
                 </CardHeader>
-                <CardContent className="flex-grow flex items-center justify-center text-center">
+                <CardContent className="flex-grow flex items-center justify-center text-center min-h-[200px]">
                      <AnimatePresence mode="wait">
                         <motion.div
                             key={currentVerse}
@@ -36,14 +50,8 @@ export function HymnCard({ data }: { data: Hymn }) {
                         </motion.div>
                     </AnimatePresence>
                 </CardContent>
-                 <CardFooter className="flex justify-between items-center">
-                    <Button onClick={prevVerse} variant="outline" size="lg" className="bg-white/50">
-                        <ArrowLeft className="mr-2"/> Previous
-                    </Button>
+                 <CardFooter className="flex justify-end items-center">
                     <p className="text-muted-foreground">Verse {currentVerse + 1} of {data.lyrics.length}</p>
-                    <Button onClick={nextVerse} variant="outline" size="lg" className="bg-white/50">
-                        Next <ArrowRight className="ml-2"/>
-                    </Button>
                 </CardFooter>
             </Card>
         </div>

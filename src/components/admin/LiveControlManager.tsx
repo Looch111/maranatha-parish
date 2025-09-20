@@ -1,11 +1,12 @@
+
 'use client';
+import { useState } from 'react';
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward } from 'lucide-react';
+import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 
 interface LiveControlManagerProps {
     initialWelcomeMessage: WelcomeMessage;
@@ -14,6 +15,12 @@ interface LiveControlManagerProps {
     initialHymns: Hymn[];
     initialBibleVerses: BibleVerse[];
     initialWhatsNext: WhatsNext;
+}
+
+type DisplayItem = {
+    type: string;
+    data: any;
+    id?: string;
 }
 
 const ItemIcon = ({ type }: { type: string }) => {
@@ -28,7 +35,7 @@ const ItemIcon = ({ type }: { type: string }) => {
     }
 };
 
-const getTitle = (item: any): string => {
+const getTitle = (item: DisplayItem): string => {
     switch(item.type) {
         case 'welcome': return item.data.message;
         case 'announcements': return 'All Announcements';
@@ -40,7 +47,7 @@ const getTitle = (item: any): string => {
     }
 }
 
-const getTypeString = (item: any): string => {
+const getTypeString = (item: DisplayItem): string => {
      switch(item.type) {
         case 'welcome': return 'Welcome';
         case 'announcements': return 'Announcements';
@@ -62,8 +69,10 @@ export function LiveControlManager({
     initialWhatsNext,
 }: LiveControlManagerProps) {
     const { toast } = useToast();
+    const [nowPlaying, setNowPlaying] = useState<DisplayItem | null>(null);
+    const [currentVerse, setCurrentVerse] = useState(0);
 
-    const allContent = [
+    const allContent: DisplayItem[] = [
         { type: 'welcome', data: initialWelcomeMessage },
         ...(initialAnnouncements.length > 0 ? [{ type: 'announcements', data: initialAnnouncements }] : []),
         ...(initialEvents.length > 0 ? [{ type: 'events', data: initialEvents }] : []),
@@ -72,13 +81,41 @@ export function LiveControlManager({
         { type: 'whats-next', data: initialWhatsNext }
     ].filter(item => item && item.data);
 
-    const handleDisplay = (item: any) => {
-        // When Firebase is connected, this will update the live display.
+    const handleDisplay = (item: DisplayItem) => {
+        setNowPlaying(item);
+        setCurrentVerse(0); // Reset verse on new item
         console.log('Displaying:', item);
         toast({
             title: "Display Sent",
-            description: `"${getTitle(item)}" is ready to be shown. (This is a simulation)`,
+            description: `"${getTitle(item)}" is now live. (This is a simulation)`,
         });
+    }
+
+    const handleStop = () => {
+        const stoppedItem = nowPlaying;
+        setNowPlaying(null);
+        if (stoppedItem) {
+            toast({
+                title: "Display Stopped",
+                description: `"${getTitle(stoppedItem)}" is no longer live.`,
+                variant: 'destructive',
+            });
+        }
+    }
+
+    const changeVerse = (direction: 'next' | 'prev') => {
+        if (nowPlaying?.type === 'hymn') {
+            const hymn = nowPlaying.data as Hymn;
+            const newVerseIndex = direction === 'next'
+                ? (currentVerse + 1) % hymn.lyrics.length
+                : (currentVerse - 1 + hymn.lyrics.length) % hymn.lyrics.length;
+            setCurrentVerse(newVerseIndex);
+            console.log(`Displaying Verse ${newVerseIndex + 1} of "${hymn.title}"`);
+            toast({
+                title: "Verse Changed",
+                description: `Now showing verse ${newVerseIndex + 1}.`,
+            });
+        }
     }
 
     return (
@@ -100,22 +137,41 @@ export function LiveControlManager({
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {allContent.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
-                                            <ItemIcon type={getTypeString(item)} />
-                                            <span>{getTypeString(item)}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="outline" size="sm" onClick={() => handleDisplay(item)}>
-                                            <Tv className="mr-2 h-4 w-4" /> Display Now
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {allContent.map((item, index) => {
+                                const isPlaying = nowPlaying?.type === item.type && nowPlaying?.id === item.id;
+                                return (
+                                    <TableRow key={index} className={isPlaying ? 'bg-accent/50' : ''}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <ItemIcon type={getTypeString(item)} />
+                                                <span>{getTypeString(item)}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            {isPlaying ? (
+                                                <>
+                                                    {item.type === 'hymn' && (
+                                                        <>
+                                                            <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
+                                                                <ArrowLeft className="mr-2 h-4 w-4" /> Prev Verse
+                                                            </Button>
+                                                            <Button variant="outline" size="sm" onClick={() => changeVerse('next')}>
+                                                                Next Verse <ArrowRight className="ml-2 h-4 w-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    <Button variant="destructive" size="sm" onClick={handleStop}>Stop</Button>
+                                                </>
+                                            ) : (
+                                                <Button variant="outline" size="sm" onClick={() => handleDisplay(item)} disabled={!!nowPlaying}>
+                                                    <Tv className="mr-2 h-4 w-4" /> Display Now
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
                         </TableBody>
                     </Table>
                 </div>
