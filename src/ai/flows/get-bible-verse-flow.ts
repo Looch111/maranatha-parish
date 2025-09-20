@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow to retrieve the text of a Bible verse from its reference.
@@ -36,11 +37,15 @@ const prompt = ai.definePrompt({
   name: 'getBibleVerseTextPrompt',
   input: {schema: GetBibleVerseTextInputSchema},
   output: {schema: GetBibleVerseTextOutputSchema},
-  prompt: `You are a Bible expert. The user will provide a Bible verse reference. Your task is to return the full text of that verse.
+  prompt: `You are a Bible expert. The user will provide a Bible verse reference. Your task is to return the full text of that verse or range of verses.
 
 Verse Reference: {{{reference}}}
 
-Return the text split into an array of strings. Each string in the array should be a short, meaningful phrase or sentence suitable for displaying on a screen one at a time. Do not include the verse reference in the output text.`,
+Return the text split into an array of strings.
+- If the reference is for a range of verses (e.g., "John 3:16-18"), each verse (16, 17, 18) must be a separate string in the array.
+- If the reference is for a single verse, split that single verse into short, meaningful phrases or sentences suitable for displaying on a screen one at a time.
+
+Do not include the verse reference in the output text.`,
 });
 
 const getBibleVerseTextFlow = ai.defineFlow(
