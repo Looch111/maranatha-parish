@@ -13,7 +13,7 @@ function WelcomeSection() {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
 
     return (
-        <Card className="h-full relative overflow-hidden flex items-center justify-center text-center p-0">
+        <Card className="h-full relative overflow-hidden flex items-center justify-center text-center p-0 rounded-none border-0">
             {welcomeImage && (
                  <Image
                     src={welcomeImage.imageUrl}
@@ -53,7 +53,7 @@ function WelcomeSection() {
 
 export function TvDisplay() {
     return (
-        <div className="h-full p-4 lg:p-6 bg-background">
+        <div className="h-full bg-background">
             <WelcomeSection />
         </div>
     );
