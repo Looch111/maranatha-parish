@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Church } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 
@@ -12,7 +12,7 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
-            <Church className="h-6 w-6" />
+            <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={24} height={24} className="h-6 w-6" />
             <span className="font-headline">Maranatha Parish</span>
           </Link>
           <nav className="flex items-center gap-2">
