@@ -35,13 +35,13 @@ function WelcomeSection() {
                         transition={{ duration: 0.5 }}
                     >
                         {welcomeData ? (
-                            <h1 className="font-headline text-5xl md:text-7xl font-bold drop-shadow-lg">
+                            <h1 className="font-headline text-7xl md:text-9xl font-bold drop-shadow-lg">
                                 {welcomeData.message}
                             </h1>
                         ) : (
                             <div className="space-y-4">
-                               <Skeleton className="h-16 w-full max-w-[600px] bg-white/20 mx-auto" />
-                               <Skeleton className="h-16 w-full max-w-[450px] mx-auto bg-white/20" />
+                               <Skeleton className="h-24 w-full max-w-[800px] bg-white/20 mx-auto" />
+                               <Skeleton className="h-24 w-full max-w-[600px] mx-auto bg-white/20" />
                             </div>
                         )}
                     </motion.div>
