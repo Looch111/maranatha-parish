@@ -35,7 +35,7 @@ function WelcomeSection() {
                         transition={{ duration: 0.5 }}
                     >
                         {welcomeData ? (
-                            <h1 className="font-headline text-4xl md:text-6xl font-bold drop-shadow-lg">
+                            <h1 className="font-headline text-5xl md:text-7xl font-bold drop-shadow-lg">
                                 {welcomeData.message}
                             </h1>
                         ) : (
