@@ -35,7 +35,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
                 />
             )}
             <div className="absolute inset-0 bg-black/50" />
-            <div className="relative z-10 text-white p-8">
+            <div className="relative z-10 text-white">
                  <AnimatePresence mode="wait">
                     <motion.div
                         key={data.message}
