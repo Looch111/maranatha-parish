@@ -19,3 +19,20 @@ export type Event = {
   time: string; // Store as HH:mm
   location: string;
 };
+
+export type Hymn = {
+  id: string;
+  title: string;
+  lyrics: string;
+};
+
+export type BibleVerse = {
+  id: string;
+  reference: string;
+  text: string;
+};
+
+export type WhatsNext = {
+  id: string;
+  message: string;
+};

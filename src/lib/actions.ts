@@ -168,3 +168,141 @@ export async function deleteEventAction(id: string) {
         return { type: 'error', message: 'Failed to delete event.' };
     }
 }
+
+// Hymn Actions
+const HymnSchema = z.object({
+    id: z.string().optional(),
+    title: z.string().min(3, "Title is too short.").max(150, "Title is too long."),
+    lyrics: z.string().min(10, "Lyrics are too short.").max(5000, "Lyrics are too long."),
+});
+
+export async function saveHymnAction(prevState: FormState, formData: FormData): Promise<FormState> {
+    const validatedFields = HymnSchema.safeParse({
+        id: formData.get('id') as string || undefined,
+        title: formData.get('title'),
+        lyrics: formData.get('lyrics'),
+    });
+
+    if (!validatedFields.success) {
+        return { type: 'error', errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    const { id, title, lyrics } = validatedFields.data;
+    
+    const contentCheck = await checkContent(`${title}: ${lyrics}`);
+    if (!contentCheck.isAppropriate) {
+        return { type: 'error', errors: { lyrics: [contentCheck.reason || "This hymn was flagged as inappropriate."] }};
+    }
+
+    try {
+        if (id) {
+            console.log('Simulating update hymn:', { id, title, lyrics });
+        } else {
+            console.log('Simulating add hymn:', { title, lyrics });
+        }
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return { type: 'success', message: `Hymn ${id ? 'updated' : 'added'} successfully!` };
+    } catch (error) {
+        return { type: 'error', message: 'Failed to save hymn.' };
+    }
+}
+
+export async function deleteHymnAction(id: string) {
+    if (!id) return { type: 'error', message: 'Hymn ID is missing.' };
+    try {
+        console.log('Simulating delete hymn:', id);
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return { type: 'success', message: 'Hymn deleted.' };
+    } catch (e) {
+        return { type: 'error', message: 'Failed to delete hymn.' };
+    }
+}
+
+
+// Bible Verse Actions
+const BibleVerseSchema = z.object({
+    id: z.string().optional(),
+    reference: z.string().min(3, "Reference is too short.").max(100, "Reference is too long."),
+    text: z.string().min(10, "Text is too short.").max(1000, "Text is too long."),
+});
+
+export async function saveBibleVerseAction(prevState: FormState, formData: FormData): Promise<FormState> {
+    const validatedFields = BibleVerseSchema.safeParse({
+        id: formData.get('id') as string || undefined,
+        reference: formData.get('reference'),
+        text: formData.get('text'),
+    });
+
+    if (!validatedFields.success) {
+        return { type: 'error', errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    const { id, reference, text } = validatedFields.data;
+    
+    const contentCheck = await checkContent(`${reference}: ${text}`);
+    if (!contentCheck.isAppropriate) {
+        return { type: 'error', errors: { text: [contentCheck.reason || "This Bible verse was flagged as inappropriate."] }};
+    }
+
+    try {
+        if (id) {
+            console.log('Simulating update Bible verse:', { id, reference, text });
+        } else {
+            console.log('Simulating add Bible verse:', { reference, text });
+        }
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return { type: 'success', message: `Bible verse ${id ? 'updated' : 'added'} successfully!` };
+    } catch (error) {
+        return { type: 'error', message: 'Failed to save Bible verse.' };
+    }
+}
+
+export async function deleteBibleVerseAction(id: string) {
+    if (!id) return { type: 'error', message: 'Bible verse ID is missing.' };
+    try {
+        console.log('Simulating delete Bible verse:', id);
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return { type: 'success', message: 'Bible verse deleted.' };
+    } catch (e) {
+        return { type: 'error', message: 'Failed to delete Bible verse.' };
+    }
+}
+
+// What's Next Actions
+const WhatsNextSchema = z.object({
+  message: z.string().min(5, "Message must be at least 5 characters long.").max(200, "Message must be 200 characters or less."),
+});
+
+export async function updateWhatsNextAction(prevState: FormState, formData: FormData): Promise<FormState> {
+  const validatedFields = WhatsNextSchema.safeParse({
+    message: formData.get('message'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      type: 'error',
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+  
+  const contentCheck = await checkContent(validatedFields.data.message);
+  if (!contentCheck.isAppropriate) {
+    return {
+      type: 'error',
+      message: contentCheck.reason || "This message was flagged as inappropriate."
+    };
+  }
+
+  try {
+    console.log('Simulating update what\'s next message:', validatedFields.data);
+    revalidatePath('/');
+    revalidatePath('/admin');
+    return { type: 'success', message: 'What\'s next message updated successfully!' };
+  } catch (error) {
+    return { type: 'error', message: 'Failed to update message.' };
+  }
+}
