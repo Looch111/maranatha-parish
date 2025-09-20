@@ -10,12 +10,12 @@ function docWithId<T>(doc: DocumentData): T {
 }
 
 // Hook for fetching a single document
-export function useFirestore<T>(path: string): T | null;
+export function useFirestore<T>(path: string): T | null | undefined;
 // Hook for fetching a collection
-export function useFirestore<T>(path: string, orderField?: keyof T, orderDir?: 'asc' | 'desc'): T[] | null;
+export function useFirestore<T>(path: string, orderField?: keyof T, orderDir?: 'asc' | 'desc'): T[] | null | undefined;
 
-export function useFirestore<T>(path: string, orderField?: keyof T, orderDir: 'asc' | 'desc' = 'asc'): T | T[] | null {
-    const [data, setData] = useState<T | T[] | null>(null);
+export function useFirestore<T>(path:string, orderField?: keyof T, orderDir: 'asc' | 'desc' = 'asc'): T | T[] | null | undefined {
+    const [data, setData] = useState<T | T[] | null | undefined>(undefined);
 
     useEffect(() => {
         if (!path) return;
@@ -32,7 +32,7 @@ export function useFirestore<T>(path: string, orderField?: keyof T, orderDir: 'a
                 setData(results);
             }, (error) => {
                 console.error(`Error fetching collection ${path}:`, error);
-                setData([]);
+                setData([]); // Return empty array on error
             });
             return () => unsubscribe();
         } else {
@@ -41,11 +41,11 @@ export function useFirestore<T>(path: string, orderField?: keyof T, orderDir: 'a
                 if (docSnap.exists()) {
                     setData(docWithId<T>(docSnap));
                 } else {
-                    setData(null);
+                    setData(null); // Document does not exist
                 }
             }, (error) => {
                 console.error(`Error fetching document ${path}:`, error);
-                setData(null);
+                setData(null); // Set to null on error
             });
             return () => unsubscribe();
         }
