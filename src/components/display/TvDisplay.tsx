@@ -149,18 +149,15 @@ function DefaultDisplay() {
 
     if (loading) {
         return (
-             <div className="w-full h-screen flex items-center justify-center">
+             <div className="w-full h-screen flex items-center justify-center bg-background">
                 <Skeleton className="h-96 w-full max-w-2xl" />
              </div>
         );
     }
 
-    if (!welcomeMessage) {
-        const defaultWelcome: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
-        return <WelcomeCard data={defaultWelcome} />
-    }
+    const displayMessage = welcomeMessage || { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
 
-    return <WelcomeCard data={welcomeMessage} />;
+    return <WelcomeCard data={displayMessage} />;
 }
 
 
@@ -181,30 +178,31 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
         case 'none':
             return <DefaultDisplay />;
         default:
-            return (
-                <Card>
-                    <CardContent className="p-8">
-                         <p>Waiting for content...</p>
-                    </CardContent>
-                </Card>
-           );
+            return <DefaultDisplay />;
     }
 }
 
 
 export function TvDisplay() {
     const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
-    const isWelcomeScreen = !liveDisplayItem || liveDisplayItem.type === 'none' || liveDisplayItem.type === 'welcome';
     
+    // Determine a unique key for the animation. This ensures a re-render when the item changes.
+    const animationKey = liveDisplayItem 
+        ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` 
+        : 'loading';
+
+    // Conditionally apply full-screen styles only for the welcome screen.
+    const isWelcomeScreen = !liveDisplayItem || liveDisplayItem.type === 'none' || liveDisplayItem.type === 'welcome';
+
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                key={liveDisplayItem ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` : 'loading'}
+                key={animationKey}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
-                className={isWelcomeScreen ? 'h-screen' : ''}
+                className={isWelcomeScreen ? 'h-screen' : 'container mx-auto py-8'}
             >
                 {liveDisplayItem ? (
                     <LiveItemDisplay item={liveDisplayItem} />
