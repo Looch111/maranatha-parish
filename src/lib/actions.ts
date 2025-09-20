@@ -173,32 +173,37 @@ export async function deleteEventAction(id: string) {
 const HymnSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(3, "Title is too short.").max(150, "Title is too long."),
-    lyrics: z.string().min(10, "Lyrics are too short.").max(5000, "Lyrics are too long."),
+    lyrics: z.array(z.string().min(1, "Verse cannot be empty.")).min(1, "At least one verse is required."),
 });
 
 export async function saveHymnAction(prevState: FormState, formData: FormData): Promise<FormState> {
+    
+    const lyrics = Array.from(formData.keys())
+      .filter(key => key.startsWith('lyrics['))
+      .map(key => formData.get(key) as string);
+
     const validatedFields = HymnSchema.safeParse({
         id: formData.get('id') as string || undefined,
         title: formData.get('title'),
-        lyrics: formData.get('lyrics'),
+        lyrics: lyrics,
     });
 
     if (!validatedFields.success) {
         return { type: 'error', errors: validatedFields.error.flatten().fieldErrors };
     }
 
-    const { id, title, lyrics } = validatedFields.data;
+    const { id, title, lyrics: validatedLyrics } = validatedFields.data;
     
-    const contentCheck = await checkContent(`${title}: ${lyrics}`);
+    const contentCheck = await checkContent(`${title}: ${validatedLyrics.join('\n')}`);
     if (!contentCheck.isAppropriate) {
         return { type: 'error', errors: { lyrics: [contentCheck.reason || "This hymn was flagged as inappropriate."] }};
     }
 
     try {
         if (id) {
-            console.log('Simulating update hymn:', { id, title, lyrics });
+            console.log('Simulating update hymn:', { id, title, lyrics: validatedLyrics });
         } else {
-            console.log('Simulating add hymn:', { title, lyrics });
+            console.log('Simulating add hymn:', { title, lyrics: validatedLyrics });
         }
         revalidatePath('/');
         revalidatePath('/admin');

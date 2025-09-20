@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, AlertCircle, MinusCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
 function SubmitButton() {
@@ -31,7 +31,16 @@ function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: bo
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useFormState(saveHymnAction, { type: 'idle' });
+  const [verses, setVerses] = useState<string[]>(hymn?.lyrics || ['']);
 
+  const addVerse = () => setVerses([...verses, '']);
+  const removeVerse = (index: number) => setVerses(verses.filter((_, i) => i !== index));
+  const updateVerse = (index: number, value: string) => {
+    const newVerses = [...verses];
+    newVerses[index] = value;
+    setVerses(newVerses);
+  };
+  
   useEffect(() => {
     if (state.type === 'success') {
       toast({ title: 'Success', description: state.message });
@@ -50,9 +59,28 @@ function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: bo
           {state?.type === 'error' && state.errors?.title && <p className="text-sm font-medium text-destructive">{state.errors.title.join(', ')}</p>}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="lyrics">Lyrics</Label>
-          <Textarea id="lyrics" name="lyrics" defaultValue={hymn?.lyrics} placeholder="Amazing grace! How sweet the sound..." required rows={10} />
-          {state?.type === 'error' && state.errors?.lyrics && <p className="text-sm font-medium text-destructive">{state.errors.lyrics.join(', ')}</p>}
+          <Label>Lyrics (Verse by Verse)</Label>
+          <div className="space-y-2">
+            {verses.map((verse, index) => (
+              <div key={index} className="flex items-center gap-2">
+                 <Textarea 
+                   name={`lyrics[${index}]`} 
+                   value={verse}
+                   onChange={(e) => updateVerse(index, e.target.value)}
+                   placeholder={`Verse ${index + 1}`} 
+                   required 
+                   rows={2} 
+                 />
+                 <Button type="button" variant="ghost" size="icon" onClick={() => removeVerse(index)} disabled={verses.length <= 1}>
+                   <MinusCircle className="h-4 w-4 text-destructive" />
+                 </Button>
+              </div>
+            ))}
+          </div>
+           {state?.type === 'error' && state.errors?.lyrics && <p className="text-sm font-medium text-destructive pt-2">{state.errors.lyrics.join(', ')}</p>}
+          <Button type="button" variant="outline" size="sm" onClick={addVerse} className="mt-2">
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Verse
+          </Button>
         </div>
          {state?.type === 'error' && !state.errors && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{state.message}</AlertDescription></Alert>}
       </div>
@@ -111,7 +139,7 @@ export function HymnsManager({ initialData }: { initialData: Hymn[] }) {
             {initialData.map((hymn) => (
               <TableRow key={hymn.id}>
                 <TableCell className="font-medium">{hymn.title}</TableCell>
-                <TableCell className="max-w-sm truncate">{hymn.lyrics}</TableCell>
+                <TableCell className="max-w-sm truncate">{hymn.lyrics.join(' ')}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setSelected(hymn); setOpen(true); }}>
                     <Edit className="h-4 w-4" />

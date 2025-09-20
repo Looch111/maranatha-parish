@@ -23,7 +23,7 @@ export type Event = {
 export type Hymn = {
   id: string;
   title: string;
-  lyrics: string;
+  lyrics: string[];
 };
 
 export type BibleVerse = {

@@ -16,8 +16,8 @@ const mockEvents: Event[] = [
     { id: '2', name: 'Charity Drive', date: '2024-08-20', time: '09:00', location: 'Church Parking Lot' },
 ];
 const mockHymns: Hymn[] = [
-    { id: '1', title: 'Amazing Grace', lyrics: 'Amazing grace! How sweet the sound...' },
-    { id: '2', title: 'How Great Thou Art', lyrics: 'O Lord my God, when I in awesome wonder...' },
+    { id: '1', title: 'Amazing Grace', lyrics: ['Amazing grace! How sweet the sound,', 'That saved a wretch like me.'] },
+    { id: '2', title: 'How Great Thou Art', lyrics: ['O Lord my God, when I in awesome wonder,', 'Consider all the worlds Thy Hands have made;'] },
 ];
 const mockBibleVerses: BibleVerse[] = [
     { id: '1', reference: 'John 3:16', text: 'For God so loved the world, that he gave his only Son...' },
