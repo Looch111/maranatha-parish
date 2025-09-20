@@ -15,6 +15,7 @@ import { BibleVerseCard } from '@/components/display/BibleVerseCard';
 import { WhatsNextCard } from '@/components/display/WhatsNextCard';
 import { useFirestore } from '@/hooks/use-firestore';
 import { getDocument } from '@/hooks/use-firestore';
+import Link from 'next/link';
 
 
 function WelcomeCard({ data }: { data: WelcomeMessage }) {
@@ -33,6 +34,14 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
                 />
             )}
             <div className="absolute inset-0 bg-black/50" />
+
+            <div className="absolute top-0 left-0 p-8">
+                 <Link href="/" className="flex items-center gap-3 text-2xl font-bold text-white">
+                    <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={50} height={50} className="h-12 w-12 bg-white rounded-full p-1" />
+                    <span className="font-headline text-5xl drop-shadow-md">Maranatha Parish</span>
+                </Link>
+            </div>
+
             <div className="relative z-10 text-center p-4">
                 <div className='text-white'>
                     <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg">
@@ -64,7 +73,11 @@ function DefaultDisplay() {
     }, []);
 
     if (loading) {
-        return <Skeleton className="h-96 w-full" />;
+        return (
+             <div className="w-full h-screen flex items-center justify-center">
+                <Skeleton className="h-96 w-full max-w-2xl" />
+             </div>
+        );
     }
 
     if (!welcomeMessage) {
