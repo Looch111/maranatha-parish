@@ -103,7 +103,13 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const [animationKey, setAnimationKey] = useState(0);
 
     useEffect(() => {
-        const totalDuration = (data.message.length + (data.subtitle?.length || 0)) * 0.06 + 4000;
+        // Total duration is estimated based on letter count + pause time.
+        const titleDuration = (data.message.length * 0.06) * 1000;
+        const subtitleDelay = 500;
+        const subtitleDuration = (data.subtitle?.length || 0) * 0.06 * 1000;
+        const pauseAfter = 4000;
+        const totalDuration = titleDuration + subtitleDelay + subtitleDuration + pauseAfter;
+
         const interval = setInterval(() => {
             setAnimationKey(prev => prev + 1);
         }, totalDuration);
@@ -111,13 +117,17 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
         return () => clearInterval(interval);
     }, [data]);
 
+    const subtitleDelayInSeconds = (data.message.length * 0.04) + 0.5;
+
     return (
         <div className="relative z-10 text-center">
             <div className='text-white'>
                 <AnimatePresence>
                     <AnimatedText keyAffix={`title-${animationKey}`} text={data.message} el="h1" className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold drop-shadow-lg flex" />
+                </AnimatePresence>
+                <AnimatePresence>
                     {data.subtitle && (
-                         <AnimatedText keyAffix={`subtitle-${animationKey}`} text={data.subtitle} el="p" className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md flex" delay={data.message.length} />
+                         <AnimatedText keyAffix={`subtitle-${animationKey}`} text={data.subtitle} el="p" className="text-lg sm:text-xl md:text-3xl mt-4 font-light drop-shadow-md flex" delay={subtitleDelayInSeconds} />
                     )}
                 </AnimatePresence>
             </div>
@@ -167,23 +177,24 @@ const DisplayWrapper = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden text-white p-8">
             <AnimatePresence>
-                <motion.div
-                    key={currentImageIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.5 }}
-                    className="absolute inset-0"
-                >
-                    <Image
-                        src={welcomeImages[currentImageIndex].imageUrl}
-                        alt={welcomeImages[currentImageIndex].description}
-                        fill
-                        className="object-cover"
-                        data-ai-hint={welcomeImages[currentImageIndex].imageHint}
-                        priority={currentImageIndex === 0}
-                    />
-                </motion.div>
+                {welcomeImages.map((image, index) => (
+                     <motion.div
+                        key={image.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
+                        transition={{ duration: 1.5 }}
+                        className="absolute inset-0"
+                    >
+                        <Image
+                            src={image.imageUrl}
+                            alt={image.description}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={image.imageHint}
+                            priority={index === 0}
+                        />
+                    </motion.div>
+                ))}
             </AnimatePresence>
             <div className="absolute inset-0 bg-black/50" />
 
