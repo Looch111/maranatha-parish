@@ -7,6 +7,13 @@ import { useState, useEffect } from 'react';
 
 function Clock() {
   const [date, setDate] = useState<Date | null>(null);
+  const pathname = usePathname();
+  const [isTvDisplay, setIsTvDisplay] = useState(false);
+
+  useEffect(() => {
+    setIsTvDisplay(pathname === '/');
+  }, [pathname]);
+
 
   useEffect(() => {
     const updateClock = () => {
@@ -17,7 +24,6 @@ function Clock() {
     return () => clearInterval(timer);
   }, []);
 
-  const isTvDisplay = usePathname() === '/';
   
   const time = date ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
   const dateString = date ? date.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
@@ -37,20 +43,26 @@ function Clock() {
 
 export function Header() {
   const pathname = usePathname();
+  const [isTvDisplay, setIsTvDisplay] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  const isTvDisplay = pathname === '/';
+  useEffect(() => {
+    setIsClient(true);
+    setIsTvDisplay(pathname === '/');
+  }, [pathname]);
+
 
   return (
-    <header className={isTvDisplay ? 'absolute top-0 left-0 right-0 z-50' : 'bg-card border-b shadow-sm sticky top-0 z-50'}>
+    <header className={isTvDisplay && isClient ? 'absolute top-0 left-0 right-0 z-50' : 'bg-card border-b shadow-sm sticky top-0 z-50'}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className={`flex items-center gap-3 text-2xl font-bold ${isTvDisplay ? 'text-white' : 'text-primary'}`}>
+          <Link href="/" className={`flex items-center gap-3 text-2xl font-bold ${isTvDisplay && isClient ? 'text-white' : 'text-primary'}`}>
             <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={40} height={40} className="h-10 w-10" />
             <span className="font-headline text-4xl">Maranatha Parish</span>
           </Link>
            <nav className="flex items-center gap-4">
             <Clock />
-             {pathname !== '/' && (
+             {isClient && pathname !== '/' && (
               <Button asChild variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}>
                 <Link href="/admin">Admin Panel</Link>
               </Button>
