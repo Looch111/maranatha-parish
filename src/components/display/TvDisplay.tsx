@@ -23,7 +23,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
     
     return (
-        <div className="h-full w-full relative overflow-hidden flex items-center justify-center text-center p-0">
+        <div className="h-full w-full relative overflow-hidden flex items-center justify-center text-center">
             {welcomeImage && (
                  <Image
                     src={welcomeImage.imageUrl}
