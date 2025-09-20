@@ -78,13 +78,13 @@ export function LiveControlManager({
     const { toast } = useToast();
     const liveDisplay = useFirestore<LiveDisplayItem>('live/current');
     
-    // We keep a local state for hymn verse to react instantly in the UI
-    const [hymnVerseState, setHymnVerseState] = useState<{ [key: string]: number }>({});
+    // We keep a local state for verse/part index to react instantly in the UI
+    const [verseState, setVerseState] = useState<{ [key: string]: number }>({});
     
     useEffect(() => {
-        if (liveDisplay && liveDisplay.type === 'hymn' && liveDisplay.currentVerseIndex !== undefined) {
-             const hymnId = (liveDisplay.data as Hymn).id;
-             setHymnVerseState(prev => ({...prev, [hymnId]: liveDisplay.currentVerseIndex!}));
+        if (liveDisplay && (liveDisplay.type === 'hymn' || liveDisplay.type === 'bible-verse') && liveDisplay.currentVerseIndex !== undefined) {
+             const itemId = (liveDisplay.data as Hymn | BibleVerse).id;
+             setVerseState(prev => ({...prev, [itemId]: liveDisplay.currentVerseIndex!}));
         }
     }, [liveDisplay]);
 
@@ -103,9 +103,9 @@ export function LiveControlManager({
 
     const handleDisplay = async (item: DisplayItem) => {
         let verseIndex: number | undefined = undefined;
-        if (item.type === 'hymn') {
+        if (item.type === 'hymn' || item.type === 'bible-verse') {
             verseIndex = 0;
-            setHymnVerseState(prev => ({ ...prev, [item.id!]: 0 }));
+            setVerseState(prev => ({ ...prev, [item.id!]: 0 }));
         }
         const result = await setLiveDisplayAction(item, verseIndex);
         if (result.type === 'success') {
@@ -143,34 +143,35 @@ export function LiveControlManager({
     }
 
     const changeVerse = async (direction: 'next' | 'prev') => {
-        if (nowPlaying?.type === 'hymn') {
-            const hymn = nowPlaying.data as Hymn;
-            const hymnId = hymn.id;
-            
-            // Use local state for immediate UI feedback, but get current index from DB if not in local state
-            const currentVerse = hymnVerseState[hymnId] ?? nowPlaying.currentVerseIndex ?? 0;
+        if (!nowPlaying || (nowPlaying.type !== 'hymn' && nowPlaying.type !== 'bible-verse')) return;
+        
+        const item = nowPlaying.data as Hymn | BibleVerse;
+        const itemId = item.id;
+        const parts = 'lyrics' in item ? item.lyrics : item.text;
+        
+        // Use local state for immediate UI feedback, but get current index from DB if not in local state
+        const currentVerse = verseState[itemId] ?? nowPlaying.currentVerseIndex ?? 0;
 
-            const newVerseIndex = direction === 'next'
-                ? (currentVerse + 1) % hymn.lyrics.length
-                : (currentVerse - 1 + hymn.lyrics.length) % hymn.lyrics.length;
+        const newVerseIndex = direction === 'next'
+            ? (currentVerse + 1) % parts.length
+            : (currentVerse - 1 + parts.length) % parts.length;
 
-            setHymnVerseState(prev => ({ ...prev, [hymnId]: newVerseIndex }));
-            
-            const result = await setLiveDisplayAction(nowPlaying as DisplayItem, newVerseIndex);
-             if (result.type === 'success') {
-                toast({
-                    title: "Verse Changed",
-                    description: `Now showing verse ${newVerseIndex + 1}.`,
-                });
-            } else {
-                toast({
-                    title: "Error",
-                    description: result.message,
-                    variant: 'destructive',
-                });
-                 // Revert local state if DB update fails
-                setHymnVerseState(prev => ({ ...prev, [hymnId]: currentVerse }));
-            }
+        setVerseState(prev => ({ ...prev, [itemId]: newVerseIndex }));
+        
+        const result = await setLiveDisplayAction(nowPlaying as DisplayItem, newVerseIndex);
+            if (result.type === 'success') {
+            toast({
+                title: "Display Changed",
+                description: `Now showing part ${newVerseIndex + 1}.`,
+            });
+        } else {
+            toast({
+                title: "Error",
+                description: result.message,
+                variant: 'destructive',
+            });
+                // Revert local state if DB update fails
+            setVerseState(prev => ({ ...prev, [itemId]: currentVerse }));
         }
     }
 
@@ -194,9 +195,9 @@ export function LiveControlManager({
                         </TableHeader>
                         <TableBody>
                             {allContent.map((item, index) => {
-                                const isPlaying = nowPlaying?.type === item.type && (item.type !== 'hymn' && item.type !== 'bible-verse' || (nowPlaying.data as any).id === item.id);
+                                const isPlaying = nowPlaying?.type === item.type && (!item.id || (nowPlaying.data as any).id === item.id);
                                 return (
-                                    <TableRow key={index} className={isPlaying ? 'bg-accent/50' : ''}>
+                                    <TableRow key={`${item.type}-${item.id || index}`} className={isPlaying ? 'bg-accent/50' : ''}>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <ItemIcon type={getTypeString(item)} />
@@ -205,13 +206,13 @@ export function LiveControlManager({
                                         </TableCell>
                                         <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
                                         <TableCell className="text-right space-x-2">
-                                           {isPlaying && item.type === 'hymn' && (
+                                           {isPlaying && (item.type === 'hymn' || (item.type === 'bible-verse' && item.data.text.length > 1)) && (
                                                 <>
                                                     <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
-                                                        <ArrowLeft className="mr-2 h-4 w-4" /> Prev Verse
+                                                        <ArrowLeft className="mr-2 h-4 w-4" /> Prev
                                                     </Button>
                                                     <Button variant="outline" size="sm" onClick={() => changeVerse('next')}>
-                                                        Next Verse <ArrowRight className="ml-2 h-4 w-4" />
+                                                        Next <ArrowRight className="ml-2 h-4 w-4" />
                                                     </Button>
                                                 </>
                                             )}

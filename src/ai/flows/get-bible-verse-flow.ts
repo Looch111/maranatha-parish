@@ -20,7 +20,7 @@ export type GetBibleVerseTextInput = z.infer<
 >;
 
 const GetBibleVerseTextOutputSchema = z.object({
-  text: z.string().describe('The full text of the Bible verse.'),
+  text: z.array(z.string()).describe('The full text of the Bible verse, split into meaningful chunks for display.'),
 });
 export type GetBibleVerseTextOutput = z.infer<
   typeof GetBibleVerseTextOutputSchema
@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
 
 Verse Reference: {{{reference}}}
 
-Return only the text of the verse.`,
+Return the text split into an array of strings. Each string in the array should be a short, meaningful phrase or sentence suitable for displaying on a screen one at a time. Do not include the verse reference in the output text.`,
 });
 
 const getBibleVerseTextFlow = ai.defineFlow(

@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit, Trash2, Loader2, AlertCircle, Wand2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, AlertCircle, Wand2, MinusCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
 function SubmitButton() {
@@ -35,7 +35,15 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
   const [isFetching, startFetching] = useTransition();
 
   const [reference, setReference] = useState(verse?.reference || '');
-  const [text, setText] = useState(verse?.text || '');
+  const [textParts, setTextParts] = useState<string[]>(verse?.text || ['']);
+
+  const addPart = () => setTextParts([...textParts, '']);
+  const removePart = (index: number) => setTextParts(textParts.filter((_, i) => i !== index));
+  const updatePart = (index: number, value: string) => {
+    const newParts = [...textParts];
+    newParts[index] = value;
+    setTextParts(newParts);
+  };
   
   useEffect(() => {
     if (state.type === 'success') {
@@ -53,8 +61,8 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
     startFetching(async () => {
       const result = await getBibleVerseAction(reference);
       if (result.type === 'success' && result.text) {
-        setText(result.text);
-        toast({ title: 'Verse Fetched!', description: 'The verse text has been filled in.' });
+        setTextParts(result.text);
+        toast({ title: 'Verse Fetched!', description: 'The verse text has been automatically split.' });
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -84,17 +92,28 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
           {state?.type === 'error' && state.errors?.reference && <p className="text-sm font-medium text-destructive">{state.errors.reference.join(', ')}</p>}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="text">Text</Label>
-          <Textarea 
-            id="text" 
-            name="text" 
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="For God so loved the world..." 
-            required 
-            rows={5} 
-          />
-          {state?.type === 'error' && state.errors?.text && <p className="text-sm font-medium text-destructive">{state.errors.text.join(', ')}</p>}
+          <Label>Text (split into parts)</Label>
+          <div className="space-y-2">
+            {textParts.map((part, index) => (
+              <div key={index} className="flex items-center gap-2">
+                 <Textarea 
+                   name={`text[${index}]`} 
+                   value={part}
+                   onChange={(e) => updatePart(index, e.target.value)}
+                   placeholder={`Part ${index + 1}`} 
+                   required 
+                   rows={2} 
+                 />
+                 <Button type="button" variant="ghost" size="icon" onClick={() => removePart(index)} disabled={textParts.length <= 1}>
+                   <MinusCircle className="h-4 w-4 text-destructive" />
+                 </Button>
+              </div>
+            ))}
+          </div>
+           {state?.type === 'error' && state.errors?.text && <p className="text-sm font-medium text-destructive pt-2">{state.errors.text.join(', ')}</p>}
+          <Button type="button" variant="outline" size="sm" onClick={addPart} className="mt-2">
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Part
+          </Button>
         </div>
          {state?.type === 'error' && !state.errors && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{state.message}</AlertDescription></Alert>}
       </div>
@@ -129,7 +148,7 @@ export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }
           <DialogTrigger asChild>
             <Button onClick={() => setSelected(undefined)}><PlusCircle className="mr-2" /> Add Bible Verse</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
               <DialogTitle>{selected ? 'Edit' : 'Add'} Bible Verse</DialogTitle>
               <DialogDescription>
@@ -153,7 +172,7 @@ export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }
             {initialData.map((verse) => (
               <TableRow key={verse.id}>
                 <TableCell className="font-medium">{verse.reference}</TableCell>
-                <TableCell className="max-w-sm truncate">{verse.text}</TableCell>
+                <TableCell className="max-w-sm truncate">{verse.text.join(' ')}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setSelected(verse); setOpen(true); }}>
                     <Edit className="h-4 w-4" />

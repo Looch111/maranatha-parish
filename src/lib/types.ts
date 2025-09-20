@@ -30,7 +30,7 @@ export type Hymn = {
 export type BibleVerse = {
   id: string;
   reference: string;
-  text: string;
+  text: string[];
 };
 
 export type WhatsNext = {

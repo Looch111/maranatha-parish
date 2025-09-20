@@ -84,7 +84,7 @@ export async function seedDatabaseAction() {
         // Bible Verses
         const bibleVersesCol = collection(db, 'bible-verses');
         const verse1Ref = doc(bibleVersesCol);
-        batch.set(verse1Ref, { reference: 'John 3:16', text: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.' });
+        batch.set(verse1Ref, { reference: 'John 3:16', text: ['For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.'] });
 
         await batch.commit();
 
@@ -107,7 +107,7 @@ export async function setLiveDisplayAction(item: DisplayItem, currentVerseIndex?
             data: item.data,
             timestamp: serverTimestamp()
         };
-        if (item.type === 'hymn' && currentVerseIndex !== undefined) {
+        if ((item.type === 'hymn' || item.type === 'bible-verse') && currentVerseIndex !== undefined) {
             dataToSet.currentVerseIndex = currentVerseIndex;
         }
         await setDoc(liveDisplayRef, dataToSet);
@@ -337,14 +337,18 @@ export async function deleteHymnAction(id: string) {
 const BibleVerseSchema = z.object({
     id: z.string().optional(),
     reference: z.string().min(3, "Reference is too short.").max(100, "Reference is too long."),
-    text: z.string().min(10, "Text is too short.").max(1000, "Text is too long."),
+    text: z.array(z.string().min(1, "Verse part cannot be empty.")).min(1, "At least one part of the verse is required."),
 });
 
 export async function saveBibleVerseAction(prevState: FormState, formData: FormData): Promise<FormState> {
+    const textParts = Array.from(formData.keys())
+      .filter(key => key.startsWith('text['))
+      .map(key => formData.get(key) as string);
+      
     const validatedFields = BibleVerseSchema.safeParse({
         id: formData.get('id') as string || undefined,
         reference: formData.get('reference'),
-        text: formData.get('text'),
+        text: textParts,
     });
 
     if (!validatedFields.success) {
@@ -353,7 +357,7 @@ export async function saveBibleVerseAction(prevState: FormState, formData: FormD
 
     const { id, reference, text } = validatedFields.data;
     
-    const contentCheck = await checkContent(`${reference}: ${text}`);
+    const contentCheck = await checkContent(`${reference}: ${text.join(' ')}`);
     if (!contentCheck.isAppropriate) {
         return { type: 'error', errors: { text: [contentCheck.reason || "This Bible verse was flagged as inappropriate."] }};
     }
