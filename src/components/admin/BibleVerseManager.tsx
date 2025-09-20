@@ -1,9 +1,9 @@
 
 'use client';
-import { useState, useEffect, useRef, useActionState } from 'react';
+import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
-import { saveBibleVerseAction, deleteBibleVerseAction } from '@/lib/actions';
+import { saveBibleVerseAction, deleteBibleVerseAction, getBibleVerseAction } from '@/lib/actions';
 import type { BibleVerse } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, AlertCircle, Wand2 } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
 function SubmitButton() {
@@ -32,7 +32,11 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(saveBibleVerseAction, { type: 'idle' });
+  const [isFetching, startFetching] = useTransition();
 
+  const [reference, setReference] = useState(verse?.reference || '');
+  const [text, setText] = useState(verse?.text || '');
+  
   useEffect(() => {
     if (state.type === 'success') {
       toast({ title: 'Success', description: state.message });
@@ -40,6 +44,22 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
       formRef.current?.reset();
     }
   }, [state, toast, onOpenChange]);
+
+  const handleFetchVerse = () => {
+    if (!reference) {
+      toast({ title: 'Error', description: 'Please enter a verse reference first.', variant: 'destructive' });
+      return;
+    }
+    startFetching(async () => {
+      const result = await getBibleVerseAction(reference);
+      if (result.type === 'success' && result.text) {
+        setText(result.text);
+        toast({ title: 'Verse Fetched!', description: 'The verse text has been filled in.' });
+      } else {
+        toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      }
+    });
+  };
   
   return (
     <form ref={formRef} action={formAction}>
@@ -47,12 +67,33 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
           <Label htmlFor="reference">Reference</Label>
-          <Input id="reference" name="reference" defaultValue={verse?.reference} placeholder="e.g., John 3:16" required />
+          <div className="flex items-center gap-2">
+            <Input 
+              id="reference" 
+              name="reference" 
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="e.g., John 3:16" 
+              required 
+            />
+            <Button type="button" variant="outline" size="icon" onClick={handleFetchVerse} disabled={isFetching}>
+              {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+              <span className="sr-only">Fetch Verse Text</span>
+            </Button>
+          </div>
           {state?.type === 'error' && state.errors?.reference && <p className="text-sm font-medium text-destructive">{state.errors.reference.join(', ')}</p>}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="text">Text</Label>
-          <Textarea id="text" name="text" defaultValue={verse?.text} placeholder="For God so loved the world..." required rows={5} />
+          <Textarea 
+            id="text" 
+            name="text" 
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="For God so loved the world..." 
+            required 
+            rows={5} 
+          />
           {state?.type === 'error' && state.errors?.text && <p className="text-sm font-medium text-destructive">{state.errors.text.join(', ')}</p>}
         </div>
          {state?.type === 'error' && !state.errors && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{state.message}</AlertDescription></Alert>}

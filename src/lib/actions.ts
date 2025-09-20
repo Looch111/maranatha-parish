@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
 import { z } from 'zod';
 import { filterInappropriateContent } from '@/ai/flows/filter-inappropriate-content';
+import { getBibleVerseText } from '@/ai/flows/get-bible-verse-flow';
 import type { DisplayItem } from '@/lib/types';
 
 type FormState = {
@@ -28,6 +29,20 @@ const checkContent = async (message: string) => {
         return { isAppropriate: true };
     }
 };
+
+export async function getBibleVerseAction(reference: string) {
+    if (!reference) {
+        return { type: 'error', message: 'Reference cannot be empty.' };
+    }
+    try {
+        const result = await getBibleVerseText({ reference });
+        return { type: 'success', text: result.text };
+    } catch (error) {
+        console.error("AI verse fetch failed:", error);
+        return { type: 'error', message: 'Failed to fetch verse. Please check the reference.' };
+    }
+}
+
 
 // Seed Database Action
 export async function seedDatabaseAction() {
