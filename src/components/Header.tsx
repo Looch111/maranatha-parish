@@ -13,7 +13,7 @@ export function Header() {
     <header className={isTvDisplay ? 'absolute top-0 left-0 right-0 z-50' : 'bg-card border-b shadow-sm sticky top-0 z-50'}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className={`flex items-center gap-2 text-xl font-bold ${isTvDisplay ? 'text-white' : 'text-primary'}`}>
+          <Link href="/" className={`flex items-center gap-2 text-2xl font-bold ${isTvDisplay ? 'text-white' : 'text-primary'}`}>
             <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={24} height={24} className="h-6 w-6" />
             <span className="font-headline">Maranatha Parish</span>
           </Link>
