@@ -1,4 +1,5 @@
 
+
 export type WelcomeMessage = {
   id: string; // Should be a singleton document, e.g., 'main'
   message: string;
@@ -9,7 +10,7 @@ export type Announcement = {
   id: string;
   title: string;
   content: string;
-  createdAt: string; // Using string for mock data
+  createdAt: Date;
 };
 
 export type Event = {
@@ -33,6 +34,14 @@ export type BibleVerse = {
 };
 
 export type WhatsNext = {
-  id: string;
+  id:string;
   message: string;
 };
+
+export type DisplayItem = 
+    | { type: 'welcome', data: WelcomeMessage }
+    | { type: 'announcements', data: Announcement[] }
+    | { type: 'events', data: Event[] }
+    | { type: 'hymn', data: Hymn }
+    | { type: 'bible-verse', data: BibleVerse }
+    | { type: 'whats-next', data: WhatsNext };

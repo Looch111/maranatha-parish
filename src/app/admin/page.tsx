@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
@@ -8,8 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Mock Data since Firebase is disconnected
 const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
 const mockAnnouncements: Announcement[] = [
-    { id: '1', title: 'Sunday Service', content: 'Join us for our weekly Sunday service at 10:00 AM.', createdAt: new Date().toISOString() as any },
-    { id: '2', title: 'Bake Sale', content: 'Support our youth group by buying some delicious baked goods after the service.', createdAt: new Date().toISOString() as any },
+    { id: '1', title: 'Sunday Service', content: 'Join us for our weekly Sunday service at 10:00 AM.', createdAt: new Date() },
+    { id: '2', title: 'Bake Sale', content: 'Support our youth group by buying some delicious baked goods after the service.', createdAt: new Date() },
 ];
 const mockEvents: Event[] = [
     { id: '1', name: 'Youth Group Meeting', date: '2024-08-15', time: '18:00', location: 'Parish Hall' },
