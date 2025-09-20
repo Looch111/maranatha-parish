@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'getBibleVerseTextPrompt',
   input: {schema: GetBibleVerseTextInputSchema},
   output: {schema: GetBibleVerseTextOutputSchema},
-  prompt: `You are a Bible expert. The user will provide a Bible verse reference. Your task is to return the full text of that verse or range of verses.
+  prompt: `You are a Bible expert. The user will provide a Bible verse reference. Your task is to return the full text of that verse or range of verses from the King James Version (KJV) of the Bible.
 
 Verse Reference: {{{reference}}}
 
