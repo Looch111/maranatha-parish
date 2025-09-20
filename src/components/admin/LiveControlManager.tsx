@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
+import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward, ArrowLeft, ArrowRight, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { setLiveDisplayAction, stopLiveDisplayAction } from '@/lib/actions';
 import { useFirestore } from '@/hooks/use-firestore';
@@ -17,6 +17,7 @@ interface LiveControlManagerProps {
     initialHymns: Hymn[];
     initialBibleVerses: BibleVerse[];
     initialWhatsNext: WhatsNext;
+    initialClosingMessage: ClosingMessage;
 }
 
 type DisplayItem = {
@@ -33,6 +34,7 @@ const ItemIcon = ({ type }: { type: string }) => {
         case 'Hymn': return <Music className="h-5 w-5 text-muted-foreground" />;
         case 'Bible Verse': return <BookOpen className="h-5 w-5 text-muted-foreground" />;
         case 'What\'s Next': return <Forward className="h-5 w-5 text-muted-foreground" />;
+        case 'Closing': return <LogOut className="h-5 w-5 text-muted-foreground" />;
         default: return null;
     }
 };
@@ -45,6 +47,7 @@ const getTitle = (item: DisplayItem): string => {
         case 'hymn': return item.data.title;
         case 'bible-verse': return item.data.reference;
         case 'whats-next': return item.data.message;
+        case 'closing': return item.data.message;
         default: return 'Unknown';
     }
 }
@@ -57,6 +60,7 @@ const getTypeString = (item: DisplayItem): string => {
         case 'hymn': return 'Hymn';
         case 'bible-verse': return 'Bible Verse';
         case 'whats-next': return 'What\'s Next';
+        case 'closing': return 'Closing';
         default: return 'Unknown';
     }
 }
@@ -69,6 +73,7 @@ export function LiveControlManager({
     initialHymns,
     initialBibleVerses,
     initialWhatsNext,
+    initialClosingMessage,
 }: LiveControlManagerProps) {
     const { toast } = useToast();
     const liveDisplay = useFirestore<LiveDisplayItem>('live/current');
@@ -92,7 +97,8 @@ export function LiveControlManager({
         ...(initialEvents.length > 0 ? [{ type: 'events', data: initialEvents }] : []),
         ...initialHymns.map(h => ({ type: 'hymn', data: h, id: h.id })),
         ...initialBibleVerses.map(b => ({ type: 'bible-verse', data: b, id: b.id })),
-        { type: 'whats-next', data: initialWhatsNext }
+        { type: 'whats-next', data: initialWhatsNext },
+        { type: 'closing', data: initialClosingMessage }
     ].filter(item => item && item.data);
 
     const handleDisplay = async (item: DisplayItem) => {
@@ -199,25 +205,19 @@ export function LiveControlManager({
                                         </TableCell>
                                         <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
                                         <TableCell className="text-right space-x-2">
-                                            {isPlaying ? (
+                                           {isPlaying && item.type === 'hymn' && (
                                                 <>
-                                                    {item.type === 'hymn' && (
-                                                        <>
-                                                            <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
-                                                                <ArrowLeft className="mr-2 h-4 w-4" /> Prev Verse
-                                                            </Button>
-                                                            <Button variant="outline" size="sm" onClick={() => changeVerse('next')}>
-                                                                Next Verse <ArrowRight className="ml-2 h-4 w-4" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <Button variant="destructive" size="sm" onClick={handleStop}>Stop</Button>
+                                                    <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
+                                                        <ArrowLeft className="mr-2 h-4 w-4" /> Prev Verse
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => changeVerse('next')}>
+                                                        Next Verse <ArrowRight className="ml-2 h-4 w-4" />
+                                                    </Button>
                                                 </>
-                                            ) : (
-                                                <Button variant="outline" size="sm" onClick={() => handleDisplay(item)}>
-                                                    <Tv className="mr-2 h-4 w-4" /> Display Now
-                                                </Button>
                                             )}
+                                             <Button variant={isPlaying ? 'destructive' : 'outline'} size="sm" onClick={isPlaying ? handleStop : () => handleDisplay(item)}>
+                                                {isPlaying ? 'Stop' : <><Tv className="mr-2 h-4 w-4" /> Display Now</>}
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 )

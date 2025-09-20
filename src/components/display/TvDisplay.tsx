@@ -1,17 +1,17 @@
 
 'use client';
 
-import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, LiveDisplayItem } from '@/lib/types';
+import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, LiveDisplayItem, ClosingMessage } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 import { AnnouncementsCard } from '@/components/display/AnnouncementsCard';
 import { EventsCard } from '@/components/display/EventsCard';
 import { HymnCard } from '@/components/display/HymnCard';
 import { BibleVerseCard } from '@/components/display/BibleVerseCard';
 import { WhatsNextCard } from '@/components/display/WhatsNextCard';
+import { ClosingCard } from '@/components/display/ClosingCard';
 import { useFirestore, getDocument } from '@/hooks/use-firestore';
 import Link from 'next/link';
 
@@ -163,38 +163,16 @@ function DefaultDisplay() {
 }
 
 const DisplayWrapper = ({ children }: { children: React.ReactNode }) => {
-    const welcomeImages = PlaceHolderImages.filter(img => img.imageHint.includes('church'));
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentImageIndex(prevIndex => (prevIndex + 1) % welcomeImages.length);
-        }, 7000);
-
-        return () => clearInterval(interval);
-    }, [welcomeImages.length]);
-
     return (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden text-white p-8">
             <div className="absolute inset-0">
-                {welcomeImages.map((image, index) => (
-                    <motion.div
-                        key={image.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: index === currentImageIndex ? 1 : 0 }}
-                        transition={{ duration: 1.5 }}
-                        className="absolute inset-0"
-                    >
-                        <Image
-                            src={image.imageUrl}
-                            alt={image.description}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={image.imageHint}
-                            priority={index === 0}
-                        />
-                    </motion.div>
-                ))}
+                <video
+                    src="https://i.imgur.com/txtUi6G.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    className="w-full h-full object-cover"
+                />
             </div>
             <div className="absolute inset-0 bg-black/50" />
 
@@ -228,6 +206,8 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
             return <BibleVerseCard data={item.data as BibleVerse} />;
         case 'whats-next':
             return <WhatsNextCard data={item.data as WhatsNext} />;
+        case 'closing':
+            return <ClosingCard data={item.data as ClosingMessage} />;
         case 'none':
             return <DefaultDisplay />;
         default:

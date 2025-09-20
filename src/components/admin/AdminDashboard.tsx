@@ -6,9 +6,10 @@ import { EventsManager } from '@/components/admin/EventsManager';
 import { HymnsManager } from '@/components/admin/HymnsManager';
 import { BibleVerseManager } from '@/components/admin/BibleVerseManager';
 import { WhatsNextForm } from '@/components/admin/WhatsNextForm';
+import { ClosingForm } from '@/components/admin/ClosingForm';
 import { LiveControlManager } from '@/components/admin/LiveControlManager';
-import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
-import { MessageSquare, Calendar, Megaphone, Music, BookOpen, Forward, Tv } from 'lucide-react';
+import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage } from '@/lib/types';
+import { MessageSquare, Calendar, Megaphone, Music, BookOpen, Forward, Tv, LogOut } from 'lucide-react';
 
 interface AdminDashboardProps {
     initialWelcomeMessage: WelcomeMessage;
@@ -17,6 +18,7 @@ interface AdminDashboardProps {
     initialHymns: Hymn[];
     initialBibleVerses: BibleVerse[];
     initialWhatsNext: WhatsNext;
+    initialClosingMessage: ClosingMessage;
 }
 
 export function AdminDashboard({
@@ -25,21 +27,13 @@ export function AdminDashboard({
     initialEvents,
     initialHymns,
     initialBibleVerses,
-    initialWhatsNext
+    initialWhatsNext,
+    initialClosingMessage
 }: AdminDashboardProps) {
-
-    const allContent = [
-        { type: 'welcome', data: initialWelcomeMessage },
-        { type: 'announcements', data: initialAnnouncements },
-        { type: 'events', data: initialEvents },
-        ...initialHymns.map(h => ({ type: 'hymn', data: h })),
-        ...initialBibleVerses.map(b => ({ type: 'bible-verse', data: b})),
-        { type: 'whats-next', data: initialWhatsNext }
-    ];
 
     return (
         <Tabs defaultValue="live-control" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-7">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 lg:grid-cols-8">
                 <TabsTrigger value="live-control"><Tv className="mr-2" /> Live Control</TabsTrigger>
                 <TabsTrigger value="welcome"><MessageSquare className="mr-2" /> Welcome</TabsTrigger>
                 <TabsTrigger value="announcements"><Megaphone className="mr-2" /> Announcements</TabsTrigger>
@@ -47,6 +41,7 @@ export function AdminDashboard({
                 <TabsTrigger value="hymns"><Music className="mr-2" /> Hymns</TabsTrigger>
                 <TabsTrigger value="bible-verses"><BookOpen className="mr-2" /> Bible Verses</TabsTrigger>
                 <TabsTrigger value="whats-next"><Forward className="mr-2" /> What's Next</TabsTrigger>
+                <TabsTrigger value="closing"><LogOut className="mr-2" /> Closing</TabsTrigger>
             </TabsList>
             <TabsContent value="live-control" className="mt-4">
                 <LiveControlManager 
@@ -56,6 +51,7 @@ export function AdminDashboard({
                     initialHymns={initialHymns}
                     initialBibleVerses={initialBibleVerses}
                     initialWhatsNext={initialWhatsNext}
+                    initialClosingMessage={initialClosingMessage}
                 />
             </TabsContent>
             <TabsContent value="welcome" className="mt-4">
@@ -75,6 +71,9 @@ export function AdminDashboard({
             </TabsContent>
             <TabsContent value="whats-next" className="mt-4">
                 <WhatsNextForm initialData={initialWhatsNext} />
+            </TabsContent>
+            <TabsContent value="closing" className="mt-4">
+                <ClosingForm initialData={initialClosingMessage} />
             </TabsContent>
         </Tabs>
     );

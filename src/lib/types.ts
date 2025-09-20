@@ -38,13 +38,19 @@ export type WhatsNext = {
   message: string;
 };
 
+export type ClosingMessage = {
+    id: string;
+    message: string;
+};
+
 export type DisplayItem = 
     | { type: 'welcome', data: WelcomeMessage }
     | { type: 'announcements', data: Announcement[] }
     | { type: 'events', data: Event[] }
     | { type: 'hymn', data: Hymn }
     | { type: 'bible-verse', data: BibleVerse }
-    | { type: 'whats-next', data: WhatsNext };
+    | { type: 'whats-next', data: WhatsNext }
+    | { type: 'closing', data: ClosingMessage };
 
 export type LiveDisplayItem = (DisplayItem | { type: 'none', data: null }) & {
     timestamp: Timestamp;

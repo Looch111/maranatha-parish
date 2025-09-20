@@ -39,6 +39,9 @@ export async function seedDatabaseAction() {
         batch.set(welcomeRef, { message: 'Welcome To Maranatha', subtitle: 'We Are Glad You Have Joined Us' });
         const whatsNextRef = doc(db, 'content', 'whats-next');
         batch.set(whatsNextRef, { message: 'Up Next: Sermon by Pastor Dave' });
+        const closingRef = doc(db, 'content', 'closing');
+        batch.set(closingRef, { message: 'Service has ended. God bless!' });
+
 
         // Live
         const liveRef = doc(db, 'live', 'current');
@@ -399,5 +402,40 @@ export async function updateWhatsNextAction(prevState: FormState, formData: Form
     return { type: 'success', message: 'What\'s next message updated successfully!' };
   } catch (error) {
     return { type: 'error', message: 'Failed to update message.' };
+  }
+}
+
+// Closing Message Actions
+const ClosingSchema = z.object({
+  message: z.string().min(5, "Message must be at least 5 characters long.").max(200, "Message must be 200 characters or less."),
+});
+
+export async function updateClosingMessageAction(prevState: FormState, formData: FormData): Promise<FormState> {
+  const validatedFields = ClosingSchema.safeParse({
+    message: formData.get('message'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      type: 'error',
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+  
+  const contentCheck = await checkContent(validatedFields.data.message);
+  if (!contentCheck.isAppropriate) {
+    return {
+      type: 'error',
+      message: contentCheck.reason || "This message was flagged as inappropriate."
+    };
+  }
+
+  try {
+    const closingRef = doc(db, 'content', 'closing');
+    await setDoc(closingRef, validatedFields.data, { merge: true });
+    revalidatePath('/admin');
+    return { type: 'success', message: 'Closing message updated successfully!' };
+  } catch (error) {
+    return { type: 'error', message: 'Failed to update closing message.' };
   }
 }
