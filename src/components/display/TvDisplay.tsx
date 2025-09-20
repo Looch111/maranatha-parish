@@ -11,6 +11,53 @@ import { useEffect, useState } from 'react';
 // Mock Data since Firebase is disconnected
 const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to church', subtitle: 'we are glad to have you here' };
 
+function TypingEffect({ text, className }: { text: string, className: string }) {
+    const [displayedText, setDisplayedText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [loopNum, setLoopNum] = useState(0);
+    const typingSpeed = 150;
+    const deletingSpeed = 100;
+    const delay = 2000;
+
+    useEffect(() => {
+        const handleTyping = () => {
+            const currentText = text;
+            const isComplete = !isDeleting && displayedText === currentText;
+            const isEmpty = isDeleting && displayedText === '';
+
+            if (isComplete) {
+                setTimeout(() => setIsDeleting(true), delay);
+            } else if (isEmpty) {
+                setIsDeleting(false);
+                setLoopNum(loopNum + 1);
+            } else if (isDeleting) {
+                setDisplayedText(currentText.substring(0, displayedText.length - 1));
+            } else {
+                setDisplayedText(currentText.substring(0, displayedText.length + 1));
+            }
+        };
+
+        const typingTimeout = setTimeout(handleTyping, isDeleting ? deletingSpeed : typingSpeed);
+        return () => clearTimeout(typingTimeout);
+
+    }, [displayedText, isDeleting, text, loopNum]);
+
+
+    return (
+        <h1 className={className}>
+            {displayedText}
+            <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+                className="inline-block w-1 h-full bg-white ml-2"
+            >
+                &nbsp;
+            </motion.span>
+        </h1>
+    )
+}
+
 function WelcomeSection() {
     const [welcomeData, setWelcomeData] = useState<WelcomeMessage | null>(null);
     const welcomeImage = PlaceHolderImages.find(img => img.id === 'church-welcome');
@@ -48,9 +95,10 @@ function WelcomeSection() {
                     >
                         {welcomeData ? (
                             <div>
-                                <h1 className="font-headline text-7xl md:text-9xl font-bold drop-shadow-lg">
-                                    {welcomeData.message}
-                                </h1>
+                                <TypingEffect 
+                                    text={welcomeData.message}
+                                    className="font-headline text-7xl md:text-9xl font-bold drop-shadow-lg"
+                                />
                                 {welcomeData.subtitle && (
                                     <p className="text-xl md:text-3xl mt-4 font-light drop-shadow-md">
                                         {welcomeData.subtitle}
