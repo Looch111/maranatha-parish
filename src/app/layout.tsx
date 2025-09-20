@@ -1,9 +1,13 @@
+
+'use client';
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/Header';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: 'ParishView',
   description: 'Manage and display church activities in real-time.',
 };
@@ -13,14 +17,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const [isTvDisplay, setIsTvDisplay] = useState(false);
+  
+  useEffect(() => {
+    setIsTvDisplay(pathname === '/');
+  }, [pathname]);
+
   return (
     <html lang="en" className="h-full">
-      <body className="font-body antialiased h-full flex flex-col relative">
+      <head>
+        <title>{metadata.title as string}</title>
+        <meta name="description" content={metadata.description as string} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-body antialiased h-full flex flex-col relative">
         <Header />
-        <main className="flex-1">
+        <main className={isTvDisplay ? 'h-full' : 'flex-1'}>
           {children}
         </main>
         <Toaster />
