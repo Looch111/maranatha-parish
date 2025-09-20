@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
-import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
 import { z } from 'zod';
 import { filterInappropriateContent } from '@/ai/flows/filter-inappropriate-content';
 import type { DisplayItem } from '@/lib/types';
@@ -28,6 +28,57 @@ const checkContent = async (message: string) => {
         return { isAppropriate: true };
     }
 };
+
+// Seed Database Action
+export async function seedDatabaseAction() {
+    try {
+        const batch = writeBatch(db);
+
+        // Content
+        const welcomeRef = doc(db, 'content', 'welcome');
+        batch.set(welcomeRef, { message: 'Welcome To Maranatha', subtitle: 'We Are Glad You Have Joined Us' });
+        const whatsNextRef = doc(db, 'content', 'whats-next');
+        batch.set(whatsNextRef, { message: 'Up Next: Sermon by Pastor Dave' });
+
+        // Live
+        const liveRef = doc(db, 'live', 'current');
+        batch.set(liveRef, { type: 'none', timestamp: serverTimestamp() });
+
+        // Announcements
+        const announcementsCol = collection(db, 'announcements');
+        const ann1Ref = doc(announcementsCol);
+        batch.set(ann1Ref, { title: 'Annual Bake Sale', content: 'Join us this Sunday for our annual bake sale fundraiser. All proceeds go to the youth mission trip.', createdAt: serverTimestamp() });
+        const ann2Ref = doc(announcementsCol);
+        batch.set(ann2Ref, { title: 'Food Drive', content: 'We are collecting non-perishable food items for the local food bank throughout the month.', createdAt: serverTimestamp() });
+
+        // Events
+        const eventsCol = collection(db, 'events');
+        const event1Ref = doc(eventsCol);
+        batch.set(event1Ref, { name: 'Youth Group Night', date: '2024-11-15', time: '19:00', location: 'Parish Hall' });
+        const event2Ref = doc(eventsCol);
+        batch.set(event2Ref, { name: 'Community Picnic', date: '2024-11-22', time: '12:00', location: 'Church Grounds' });
+
+        // Hymns
+        const hymnsCol = collection(db, 'hymns');
+        const hymn1Ref = doc(hymnsCol);
+        batch.set(hymn1Ref, { title: 'Amazing Grace', lyrics: ['Amazing grace! How sweet the sound, That saved a wretch like me!', 'I once was lost, but now am found, Was blind, but now I see.'] });
+
+        // Bible Verses
+        const bibleVersesCol = collection(db, 'bible-verses');
+        const verse1Ref = doc(bibleVersesCol);
+        batch.set(verse1Ref, { reference: 'John 3:16', text: 'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life.' });
+
+        await batch.commit();
+
+        revalidatePath('/admin');
+        return { type: 'success', message: 'Database seeded successfully!' };
+
+    } catch (error) {
+        console.error("Error seeding database:", error);
+        return { type: 'error', message: 'Failed to seed database.' };
+    }
+}
+
 
 // Live Display Actions
 export async function setLiveDisplayAction(item: DisplayItem, currentVerseIndex?: number) {

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirestore } from '@/hooks/use-firestore';
+import { SeedDatabase } from '@/components/admin/SeedDatabase';
 
 export default function AdminPage() {
     const welcomeMessage = useFirestore<WelcomeMessage>('content/welcome');
@@ -14,6 +15,7 @@ export default function AdminPage() {
     const whatsNext = useFirestore<WhatsNext>('content/whats-next');
 
     const loading = !welcomeMessage || !announcements || !events || !hymns || !bibleVerses || !whatsNext;
+    const isDataEmpty = !loading && announcements?.length === 0 && events?.length === 0 && hymns?.length === 0;
 
     // Default values for initialization
     const defaultWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome To Church', subtitle: 'We Are Glad To Have You Here' };
@@ -32,6 +34,8 @@ export default function AdminPage() {
                             <Skeleton className="h-10 w-full" />
                             <Skeleton className="h-64 w-full" />
                         </div>
+                    ) : isDataEmpty ? (
+                         <SeedDatabase />
                     ) : (
                         <AdminDashboard
                             initialWelcomeMessage={welcomeMessage || defaultWelcomeMessage}
