@@ -28,32 +28,30 @@ export function HymnCard({ data, currentVerseIndex }: { data: Hymn, currentVerse
 
 
     return (
-        <div className="h-full w-full flex items-center justify-center p-8 bg-gradient-to-br from-green-500 to-teal-600">
-            <Card className="w-full max-w-4xl bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col">
-                <CardHeader>
-                    <div className="flex items-center gap-4">
-                        <Music className="h-10 w-10 text-primary" />
-                        <CardTitle className="text-5xl font-headline">{data.title}</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="flex-grow flex items-center justify-center text-center min-h-[200px]">
-                     <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentVerse}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -30 }}
-                            transition={{ duration: 0.4 }}
-                            className="text-4xl leading-relaxed whitespace-pre-wrap font-serif"
-                        >
-                            {data.lyrics[currentVerse]}
-                        </motion.div>
-                    </AnimatePresence>
-                </CardContent>
-                 <CardFooter className="flex justify-end items-center">
-                    <p className="text-muted-foreground">Verse {currentVerse + 1} of {data.lyrics.length}</p>
-                </CardFooter>
-            </Card>
-        </div>
+        <Card className="w-full shadow-lg flex flex-col">
+            <CardHeader>
+                <div className="flex items-center gap-4">
+                    <Music className="h-8 w-8 text-primary" />
+                    <CardTitle className="text-3xl font-headline">{data.title}</CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent className="flex-grow flex items-center justify-center text-center p-8 min-h-[250px]">
+                 <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentVerse}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.4 }}
+                        className="text-3xl leading-relaxed whitespace-pre-wrap font-serif"
+                    >
+                        {data.lyrics[currentVerse]}
+                    </motion.div>
+                </AnimatePresence>
+            </CardContent>
+             <CardFooter className="flex justify-end items-center">
+                <p className="text-sm text-muted-foreground">Verse {currentVerse + 1} of {data.lyrics.length}</p>
+            </CardFooter>
+        </Card>
     );
 }
