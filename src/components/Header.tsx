@@ -9,11 +9,11 @@ function Clock() {
   const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const updateClock = () => {
       setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    }, 1000);
-    // Set initial time
-    setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -46,9 +46,11 @@ export function Header() {
           </Link>
            <nav className="flex items-center gap-4">
             <Clock />
-            <Button asChild variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'} className={isTvDisplay ? 'text-white hover:bg-white/10 hover:text-white' : ''}>
-              <Link href="/admin">Admin Panel</Link>
-            </Button>
+             {pathname !== '/' && (
+              <Button asChild variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}>
+                <Link href="/admin">Admin Panel</Link>
+              </Button>
+            )}
           </nav>
         </div>
       </div>
