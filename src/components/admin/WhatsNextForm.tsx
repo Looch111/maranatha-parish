@@ -64,7 +64,7 @@ export function WhatsNextForm({ initialData }: { initialData: WhatsNext }) {
            )}
           <SubmitButton />
         </CardFooter>
-      </card>
+      </Card>
     </form>
   );
 }
