@@ -35,7 +35,7 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
   const [isFetching, startFetching] = useTransition();
 
   const [reference, setReference] = useState(verse?.reference || '');
-  const [textParts, setTextParts] = useState<string[]>(verse?.text || ['']);
+  const [textParts, setTextParts] = useState<string[]>(verse ? (Array.isArray(verse.text) ? verse.text : [verse.text]) : ['']);
 
   const addPart = () => setTextParts([...textParts, '']);
   const removePart = (index: number) => setTextParts(textParts.filter((_, i) => i !== index));
@@ -172,7 +172,9 @@ export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }
             {initialData.map((verse) => (
               <TableRow key={verse.id}>
                 <TableCell className="font-medium">{verse.reference}</TableCell>
-                <TableCell className="max-w-sm truncate">{verse.text.join(' ')}</TableCell>
+                <TableCell className="max-w-sm truncate">
+                  {Array.isArray(verse.text) ? verse.text.join(' ') : verse.text}
+                </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setSelected(verse); setOpen(true); }}>
                     <Edit className="h-4 w-4" />
