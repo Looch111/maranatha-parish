@@ -6,7 +6,7 @@ import type { Announcement, Event, WelcomeMessage } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Mock Data since Firebase is disconnected
-const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to our Parish!' };
+const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to our Parish!', subtitle: 'We are glad to have you here' };
 const mockAnnouncements: Announcement[] = [
     { id: '1', title: 'Sunday Service', content: 'Join us for our weekly Sunday service at 10:00 AM.', createdAt: new Date().toISOString() as any },
     { id: '2', title: 'Bake Sale', content: 'Support our youth group by buying some delicious baked goods after the service.', createdAt: new Date().toISOString() as any },

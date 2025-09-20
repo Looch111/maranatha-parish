@@ -31,11 +31,13 @@ const checkContent = async (message: string) => {
 // Welcome Message Actions
 const WelcomeSchema = z.object({
   message: z.string().min(10, "Message must be at least 10 characters long.").max(200, "Message must be 200 characters or less."),
+  subtitle: z.string().max(100, "Subtitle must be 100 characters or less.").optional(),
 });
 
 export async function updateWelcomeMessageAction(prevState: FormState, formData: FormData): Promise<FormState> {
   const validatedFields = WelcomeSchema.safeParse({
     message: formData.get('message'),
+    subtitle: formData.get('subtitle'),
   });
 
   if (!validatedFields.success) {
@@ -45,16 +47,17 @@ export async function updateWelcomeMessageAction(prevState: FormState, formData:
     };
   }
   
-  const contentCheck = await checkContent(validatedFields.data.message);
+  const fullMessage = `${validatedFields.data.message} ${validatedFields.data.subtitle || ''}`;
+  const contentCheck = await checkContent(fullMessage);
   if (!contentCheck.isAppropriate) {
     return {
       type: 'error',
-      errors: { message: [contentCheck.reason || "This message was flagged as inappropriate."] },
+      message: contentCheck.reason || "This message was flagged as inappropriate."
     };
   }
 
   try {
-    console.log('Simulating update welcome message:', validatedFields.data.message);
+    console.log('Simulating update welcome message:', validatedFields.data);
     revalidatePath('/');
     revalidatePath('/admin');
     return { type: 'success', message: 'Welcome message updated successfully!' };

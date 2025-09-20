@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import type { WelcomeMessage } from '@/lib/types';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Input } from '../ui/input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -37,19 +38,31 @@ export function WelcomeForm({ initialData }: { initialData: WelcomeMessage }) {
           <CardTitle>Welcome Message</CardTitle>
           <CardDescription>This message will be prominently displayed on the TV screen.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="message">Message</Label>
+            <Label htmlFor="message">Main Message</Label>
             <Textarea
               id="message"
               name="message"
               placeholder="Type your welcome message here..."
               defaultValue={initialData.message}
-              rows={5}
+              rows={3}
               required
             />
             {state?.type === 'error' && state.errors?.message && (
               <p className="text-sm font-medium text-destructive pt-2">{state.errors.message.join(', ')}</p>
+            )}
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
+            <Input
+              id="subtitle"
+              name="subtitle"
+              placeholder="A short, friendly subtitle..."
+              defaultValue={initialData.subtitle}
+            />
+            {state?.type === 'error' && state.errors?.subtitle && (
+              <p className="text-sm font-medium text-destructive pt-2">{state.errors.subtitle.join(', ')}</p>
             )}
           </div>
         </CardContent>

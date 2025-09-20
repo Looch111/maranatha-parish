@@ -9,7 +9,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useEffect, useState } from 'react';
 
 // Mock Data since Firebase is disconnected
-const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to church' };
+const mockWelcomeMessage: WelcomeMessage = { id: 'welcome', message: 'Welcome to church', subtitle: 'we are glad to have you here' };
 
 function WelcomeSection() {
     const [welcomeData, setWelcomeData] = useState<WelcomeMessage | null>(null);
@@ -47,9 +47,16 @@ function WelcomeSection() {
                         transition={{ duration: 0.5 }}
                     >
                         {welcomeData ? (
-                            <h1 className="font-headline text-7xl md:text-9xl font-bold drop-shadow-lg">
-                                {welcomeData.message}
-                            </h1>
+                            <div>
+                                <h1 className="font-headline text-7xl md:text-9xl font-bold drop-shadow-lg">
+                                    {welcomeData.message}
+                                </h1>
+                                {welcomeData.subtitle && (
+                                    <p className="text-xl md:text-3xl mt-4 font-light drop-shadow-md">
+                                        {welcomeData.subtitle}
+                                    </p>
+                                )}
+                            </div>
                         ) : (
                             <div className="space-y-4">
                                <Skeleton className="h-24 w-full max-w-[800px] bg-white/20 mx-auto" />

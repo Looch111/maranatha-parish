@@ -2,6 +2,7 @@
 export type WelcomeMessage = {
   id: string; // Should be a singleton document, e.g., 'main'
   message: string;
+  subtitle?: string;
 };
 
 export type Announcement = {
