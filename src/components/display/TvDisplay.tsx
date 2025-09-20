@@ -245,7 +245,7 @@ export function TvDisplay() {
 
     return (
         <DisplayWrapper>
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
                 <motion.div
                     key={animationKey}
                     initial={{ opacity: 0 }}
