@@ -3,6 +3,33 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
+function Clock() {
+  const [time, setTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 1000);
+    // Set initial time
+    setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    return () => clearInterval(timer);
+  }, []);
+
+  const isTvDisplay = usePathname() === '/';
+
+  if (time === null) {
+    return <div className={`text-xl font-semibold ${isTvDisplay ? 'text-white' : 'text-foreground'}`} style={{width: '80px'}}>&nbsp;</div>;
+  }
+
+  return (
+    <div className={`text-xl font-semibold ${isTvDisplay ? 'text-white' : 'text-foreground'}`}>
+      {time}
+    </div>
+  );
+}
+
 
 export function Header() {
   const pathname = usePathname();
@@ -15,12 +42,10 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className={`flex items-center gap-2 text-2xl font-bold ${isTvDisplay ? 'text-white' : 'text-primary'}`}>
             <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={24} height={24} className="h-6 w-6" />
-            <span className="font-headline">Maranatha Parish</span>
+            <span className="font-headline text-3xl">Maranatha Parish</span>
           </Link>
-          <nav className="flex items-center gap-2">
-            <Button asChild variant={pathname === '/' ? 'ghost' : (pathname.startsWith('/admin') ? 'ghost' : 'secondary')} className={isTvDisplay ? 'text-white hover:bg-white/10 hover:text-white' : ''}>
-              <Link href="/">TV Display</Link>
-            </Button>
+           <nav className="flex items-center gap-4">
+            <Clock />
             <Button asChild variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'} className={isTvDisplay ? 'text-white hover:bg-white/10 hover:text-white' : ''}>
               <Link href="/admin">Admin Panel</Link>
             </Button>
