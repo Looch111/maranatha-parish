@@ -305,11 +305,11 @@ function LiveItemDisplay({ liveRef }: { liveRef: LiveDisplayRef }) {
         case 'closing':
             return <ClosingCard data={data as ClosingMessage} />;
         case 'none':
-            // Render nothing for the 'none' state, as the background is the main content.
-            return null;
+            // When nothing is displayed, show the default welcome screen
+            return <DefaultDisplay />;
         default:
             // Fallback to the same 'none' behavior
-            return null;
+            return <DefaultDisplay />;
     }
 }
 
@@ -321,7 +321,7 @@ export function TvDisplay() {
         ? `${liveDisplayRef.type}-${liveDisplayRef.ref}-${liveDisplayRef.currentVerseIndex}` 
         : 'loading';
 
-    const backgroundType = (liveDisplayRef?.type === 'closing' || !liveDisplayRef || liveDisplayRef?.type === 'none') ? 'video' : 'image';
+    const backgroundType = (liveDisplayRef?.type === 'closing') ? 'video' : 'image';
 
     return (
         <DisplayWrapper backgroundType={backgroundType}>
@@ -345,6 +345,8 @@ export function TvDisplay() {
         </DisplayWrapper>
     );
 }
+
+    
 
     
 
