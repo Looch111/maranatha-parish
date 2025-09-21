@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage } from '@/lib/types';
+import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage, LiveDisplayRef, DisplayItemType } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Tv, MessageSquare, Megaphone, Calendar, Music, BookOpen, Forward, Arrow
 import { useToast } from '@/hooks/use-toast';
 import { setLiveDisplayAction, stopLiveDisplayAction } from '@/lib/actions';
 import { useFirestore } from '@/hooks/use-firestore';
-import type { LiveDisplayItem } from '@/lib/types';
 
 interface LiveControlManagerProps {
     welcomeMessage: WelcomeMessage;
@@ -21,16 +20,17 @@ interface LiveControlManagerProps {
     closingMessage: ClosingMessage;
 }
 
-type DisplayItem = {
-    type: string;
-    data: any;
-    id?: string;
+type DisplayRowItem = {
+    type: DisplayItemType;
+    ref: string | null;
+    title: string;
+    item: any;
 }
 
 const ItemIcon = ({ type }: { type: string }) => {
     switch (type) {
         case 'Welcome': return <MessageSquare className="h-5 w-5 text-muted-foreground" />;
-        case 'Announcements': return <Megaphone className="h-5 w-5 text-muted-foreground" />;
+        case 'Announcements': return <Megaphone className="h-5 w.5 text-muted-foreground" />;
         case 'Events': return <Calendar className="h-5 w-5 text-muted-foreground" />;
         case 'Hymn': return <Music className="h-5 w-5 text-muted-foreground" />;
         case 'Bible Verse': return <BookOpen className="h-5 w-5 text-muted-foreground" />;
@@ -40,21 +40,8 @@ const ItemIcon = ({ type }: { type: string }) => {
     }
 };
 
-const getTitle = (item: DisplayItem): string => {
-    switch(item.type) {
-        case 'welcome': return item.data.message;
-        case 'announcements': return 'All Announcements';
-        case 'events': return 'All Events';
-        case 'hymn': return item.data.title;
-        case 'bible-verse': return item.data.reference;
-        case 'whats-next': return item.data.message;
-        case 'closing': return item.data.message;
-        default: return 'Unknown';
-    }
-}
-
-const getTypeString = (item: DisplayItem): string => {
-     switch(item.type) {
+const getTypeString = (type: DisplayItemType): string => {
+     switch(type) {
         case 'welcome': return 'Welcome';
         case 'announcements': return 'Announcements';
         case 'events': return 'Events';
@@ -77,42 +64,44 @@ export function LiveControlManager({
     closingMessage,
 }: LiveControlManagerProps) {
     const { toast } = useToast();
-    const liveDisplay = useFirestore<LiveDisplayItem>('live/current');
+    const liveDisplayRef = useFirestore<LiveDisplayRef>('live/current');
     
     // We keep a local state for verse/part index to react instantly in the UI
     const [verseState, setVerseState] = useState<{ [key: string]: number }>({});
     
     useEffect(() => {
-        if (liveDisplay && (liveDisplay.type === 'hymn' || liveDisplay.type === 'bible-verse') && liveDisplay.currentVerseIndex !== undefined) {
-             const itemId = (liveDisplay.data as Hymn | BibleVerse).id;
-             setVerseState(prev => ({...prev, [itemId]: liveDisplay.currentVerseIndex!}));
+        if (liveDisplayRef && (liveDisplayRef.type === 'hymn' || liveDisplayRef.type === 'bible-verse') && liveDisplayRef.currentVerseIndex !== undefined && liveDisplayRef.ref) {
+             const itemId = liveDisplayRef.ref;
+             setVerseState(prev => ({...prev, [itemId]: liveDisplayRef.currentVerseIndex!}));
         }
-    }, [liveDisplay]);
+    }, [liveDisplayRef]);
 
 
-    const nowPlaying = liveDisplay && liveDisplay.type !== 'none' ? liveDisplay : null;
+    const nowPlaying = liveDisplayRef && liveDisplayRef.type !== 'none' ? liveDisplayRef : null;
 
-    const allContent: DisplayItem[] = [
-        { type: 'welcome', data: welcomeMessage },
-        ...(announcements.length > 0 ? [{ type: 'announcements', data: announcements }] : []),
-        ...(events.length > 0 ? [{ type: 'events', data: events }] : []),
-        ...hymns.map(h => ({ type: 'hymn', data: h, id: h.id })),
-        ...bibleVerses.map(b => ({ type: 'bible-verse', data: b, id: b.id })),
-        { type: 'whats-next', data: whatsNext },
-        { type: 'closing', data: closingMessage }
-    ].filter(item => item && item.data);
+    const allContent: DisplayRowItem[] = [
+        { type: 'welcome', ref: 'content/welcome', title: welcomeMessage.message, item: welcomeMessage },
+        ...(announcements.length > 0 ? [{ type: 'announcements', ref: 'announcements', title: 'All Announcements', item: announcements }] : []),
+        ...(events.length > 0 ? [{ type: 'events', ref: 'events', title: 'All Events', item: events }] : []),
+        ...hymns.map(h => ({ type: 'hymn' as DisplayItemType, ref: `hymns/${h.id}`, title: h.title, item: h })),
+        ...bibleVerses.map(b => ({ type: 'bible-verse' as DisplayItemType, ref: `bible-verses/${b.id}`, title: b.reference, item: b })),
+        { type: 'whats-next', ref: 'content/whats-next', title: whatsNext.message, item: whatsNext },
+        { type: 'closing', ref: 'content/closing', title: closingMessage.message, item: closingMessage }
+    ].filter(item => item && item.item);
 
-    const handleDisplay = async (item: DisplayItem) => {
+    const handleDisplay = async (item: DisplayRowItem) => {
         let verseIndex: number | undefined = undefined;
         if (item.type === 'hymn' || item.type === 'bible-verse') {
             verseIndex = 0;
-            setVerseState(prev => ({ ...prev, [item.id!]: 0 }));
+            if (item.ref) {
+              setVerseState(prev => ({ ...prev, [item.ref!]: 0 }));
+            }
         }
-        const result = await setLiveDisplayAction(item, verseIndex);
+        const result = await setLiveDisplayAction(item.type, item.ref, verseIndex);
         if (result.type === 'success') {
             toast({
                 title: "Display Sent",
-                description: `"${getTitle(item)}" is now live.`,
+                description: `"${item.title}" is now live.`,
             });
         } else {
              toast({
@@ -124,13 +113,13 @@ export function LiveControlManager({
     }
 
     const handleStop = async () => {
-        const stoppedItem = nowPlaying;
+        const stoppedItem = allContent.find(c => c.ref === nowPlaying?.ref);
         const result = await stopLiveDisplayAction();
         if (result.type === 'success') {
             if (stoppedItem) {
                  toast({
                     title: "Display Stopped",
-                    description: `"${getTitle(stoppedItem as DisplayItem)}" is no longer live.`,
+                    description: `"${stoppedItem.title}" is no longer live.`,
                     variant: 'destructive',
                 });
             }
@@ -144,13 +133,13 @@ export function LiveControlManager({
     }
 
     const changeVerse = async (direction: 'next' | 'prev') => {
-        if (!nowPlaying || (nowPlaying.type !== 'hymn' && nowPlaying.type !== 'bible-verse')) return;
+        if (!nowPlaying || !nowPlaying.ref || (nowPlaying.type !== 'hymn' && nowPlaying.type !== 'bible-verse')) return;
         
-        const item = nowPlaying.data as Hymn | BibleVerse;
-        const itemId = item.id;
+        const item = allContent.find(c => c.ref === nowPlaying.ref)?.item as Hymn | BibleVerse | undefined;
+        if (!item) return;
+        const itemId = nowPlaying.ref;
         const parts = 'lyrics' in item ? item.lyrics : item.text;
         
-        // Use local state for immediate UI feedback, but get current index from DB if not in local state
         const currentVerse = verseState[itemId] ?? nowPlaying.currentVerseIndex ?? 0;
 
         const newVerseIndex = direction === 'next'
@@ -159,7 +148,7 @@ export function LiveControlManager({
 
         setVerseState(prev => ({ ...prev, [itemId]: newVerseIndex }));
         
-        const result = await setLiveDisplayAction(nowPlaying as DisplayItem, newVerseIndex);
+        const result = await setLiveDisplayAction(nowPlaying.type, nowPlaying.ref, newVerseIndex);
             if (result.type === 'success') {
             toast({
                 title: "Display Changed",
@@ -171,7 +160,7 @@ export function LiveControlManager({
                 description: result.message,
                 variant: 'destructive',
             });
-                // Revert local state if DB update fails
+            // Revert local state if DB update fails
             setVerseState(prev => ({ ...prev, [itemId]: currentVerse }));
         }
     }
@@ -196,18 +185,18 @@ export function LiveControlManager({
                         </TableHeader>
                         <TableBody>
                             {allContent.map((item, index) => {
-                                const isPlaying = nowPlaying?.type === item.type && (!item.id || (nowPlaying.data as any).id === item.id);
+                                const isPlaying = nowPlaying?.type === item.type && nowPlaying?.ref === item.ref;
                                 return (
-                                    <TableRow key={`${item.type}-${item.id || index}`} className={isPlaying ? 'bg-accent/50' : ''}>
+                                    <TableRow key={`${item.type}-${item.ref || index}`} className={isPlaying ? 'bg-accent/50' : ''}>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
-                                                <ItemIcon type={getTypeString(item)} />
-                                                <span>{getTypeString(item)}</span>
+                                                <ItemIcon type={getTypeString(item.type)} />
+                                                <span>{getTypeString(item.type)}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
+                                        <TableCell className="max-w-sm truncate">{item.title}</TableCell>
                                         <TableCell className="text-right space-x-2">
-                                           {isPlaying && (item.type === 'hymn' || (item.type === 'bible-verse' && Array.isArray(item.data.text) && item.data.text.length > 1)) && (
+                                           {isPlaying && (item.type === 'hymn' || (item.type === 'bible-verse' && Array.isArray(item.item.text) && item.item.text.length > 1)) && (
                                                 <>
                                                     <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
                                                         <ArrowLeft className="mr-2 h-4 w-4" /> Prev

@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, LiveDisplayItem, ClosingMessage } from '@/lib/types';
+import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, LiveDisplayRef, ClosingMessage, DisplayItemType } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -12,7 +12,7 @@ import { HymnCard } from '@/components/display/HymnCard';
 import { BibleVerseCard } from '@/components/display/BibleVerseCard';
 import { WhatsNextCard } from '@/components/display/WhatsNextCard';
 import { ClosingCard } from '@/components/display/ClosingCard';
-import { useFirestore, getDocument } from '@/hooks/use-firestore';
+import { useFirestore, getDocument, getCollection } from '@/hooks/use-firestore';
 import Link from 'next/link';
 import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
 import { Expand, Shrink } from 'lucide-react';
@@ -138,20 +138,9 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
 }
 
 function DefaultDisplay() {
-    const [welcomeMessage, setWelcomeMessage] = useState<WelcomeMessage | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchWelcome = async () => {
-            setLoading(true);
-            const welcome = await getDocument<WelcomeMessage>('content/welcome');
-            setWelcomeMessage(welcome);
-            setLoading(false);
-        }
-        fetchWelcome();
-    }, []);
-
-    if (loading) {
+    const welcomeMessage = useFirestore<WelcomeMessage>('content/welcome');
+   
+    if (!welcomeMessage) {
         return (
              <div className="w-full h-screen flex items-center justify-center">
                 <Skeleton className="h-96 w-full max-w-2xl bg-white/10" />
@@ -269,22 +258,44 @@ const DisplayWrapper = ({ children, backgroundType }: { children: React.ReactNod
 };
 
 
-function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
-    switch (item.type) {
+function LiveItemDisplay({ liveRef }: { liveRef: LiveDisplayRef }) {
+    
+    const collectionMap: Record<string, keyof Hymn | keyof BibleVerse | keyof Announcement | keyof Event | undefined > = {
+        'announcements': 'createdAt',
+        'events': 'date',
+        'hymns': 'title',
+        'bible-verses': 'reference',
+    }
+
+    const orderField = liveRef.ref ? collectionMap[liveRef.ref] : undefined;
+    const orderDir = 'asc';
+    
+    // This hook fetches the actual data based on the reference.
+    const data = useFirestore(liveRef.ref || liveRef.type, orderField, orderDir);
+
+    if (data === undefined) {
+         return (
+             <div className="w-full h-screen flex items-center justify-center">
+                <Skeleton className="h-96 w-full max-w-2xl bg-white/10" />
+             </div>
+        );
+    }
+    
+    switch (liveRef.type) {
         case 'welcome':
-            return <WelcomeCard data={item.data as WelcomeMessage} />;
+            return <WelcomeCard data={data as WelcomeMessage} />;
         case 'announcements':
-            return <AnnouncementsCard data={item.data as Announcement[]} />;
+            return <AnnouncementsCard data={data as Announcement[]} />;
         case 'events':
-            return <EventsCard data={item.data as Event[]} />;
+            return <EventsCard data={data as Event[]} />;
         case 'hymn':
-            return <HymnCard data={item.data as Hymn} currentVerseIndex={item.currentVerseIndex} />;
+            return <HymnCard data={data as Hymn} currentVerseIndex={liveRef.currentVerseIndex} />;
         case 'bible-verse':
-            return <BibleVerseCard data={item.data as BibleVerse} currentVerseIndex={item.currentVerseIndex} />;
+            return <BibleVerseCard data={data as BibleVerse} currentVerseIndex={liveRef.currentVerseIndex} />;
         case 'whats-next':
-            return <WhatsNextCard data={item.data as WhatsNext} />;
+            return <WhatsNextCard data={data as WhatsNext} />;
         case 'closing':
-            return <ClosingCard data={item.data as ClosingMessage} />;
+            return <ClosingCard data={data as ClosingMessage} />;
         case 'none':
             return <DefaultDisplay />;
         default:
@@ -294,13 +305,13 @@ function LiveItemDisplay({ item }: { item: LiveDisplayItem }) {
 
 
 export function TvDisplay() {
-    const liveDisplayItem = useFirestore<LiveDisplayItem>('live/current');
+    const liveDisplayRef = useFirestore<LiveDisplayRef>('live/current');
     
-    const animationKey = liveDisplayItem 
-        ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` 
+    const animationKey = liveDisplayRef 
+        ? `${liveDisplayRef.type}-${liveDisplayRef.ref}-${liveDisplayRef.currentVerseIndex}` 
         : 'loading';
 
-    const backgroundType = (liveDisplayItem?.type === 'closing' || (liveDisplayItem?.type === 'none' && !liveDisplayItem?.data)) ? 'video' : 'image';
+    const backgroundType = (liveDisplayRef?.type === 'closing' || liveDisplayRef?.type === 'none') ? 'video' : 'image';
 
     return (
         <DisplayWrapper backgroundType={backgroundType}>
@@ -313,8 +324,8 @@ export function TvDisplay() {
                     transition={{ duration: 0.5 }}
                     className={'w-full h-full flex items-center justify-center'}
                 >
-                    {liveDisplayItem ? (
-                        <LiveItemDisplay item={liveDisplayItem} />
+                    {liveDisplayRef ? (
+                        <LiveItemDisplay liveRef={liveDisplayRef} />
                     ) : (
                         <DefaultDisplay />
                     )}

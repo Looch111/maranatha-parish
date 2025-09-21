@@ -43,6 +43,16 @@ export type ClosingMessage = {
     message: string;
 };
 
+export type DisplayItemType = 
+    | 'welcome'
+    | 'announcements'
+    | 'events'
+    | 'hymn'
+    | 'bible-verse'
+    | 'whats-next'
+    | 'closing'
+    | 'none';
+
 export type DisplayItem = 
     | { type: 'welcome', data: WelcomeMessage }
     | { type: 'announcements', data: Announcement[] }
@@ -52,7 +62,9 @@ export type DisplayItem =
     | { type: 'whats-next', data: WhatsNext }
     | { type: 'closing', data: ClosingMessage };
 
-export type LiveDisplayItem = (DisplayItem | { type: 'none', data: null }) & {
+export type LiveDisplayRef = {
+    type: DisplayItemType;
+    ref?: string; // Path to the document, e.g. "hymns/hymn_id_123"
     timestamp: Timestamp;
     currentVerseIndex?: number;
 };

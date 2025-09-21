@@ -7,7 +7,7 @@ import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc,
 import { z } from 'zod';
 import { filterInappropriateContent, type FilterInappropriateContentOutput } from '@/ai/flows/filter-inappropriate-content';
 import { getBibleVerseText } from '@/ai/flows/get-bible-verse-flow';
-import type { DisplayItem } from '@/lib/types';
+import type { DisplayItem, DisplayItemType } from '@/lib/types';
 
 type FormState = {
   type: 'idle' | 'success' | 'error';
@@ -100,20 +100,21 @@ export async function seedDatabaseAction() {
 
 
 // Live Display Actions
-export async function setLiveDisplayAction(item: DisplayItem, currentVerseIndex?: number) {
+export async function setLiveDisplayAction(type: DisplayItemType, ref: string | null, currentVerseIndex?: number) {
     try {
         const liveDisplayRef = doc(db, 'live', 'current');
         const dataToSet: any = {
-            type: item.type,
-            data: item.data,
+            type: type,
             timestamp: serverTimestamp()
         };
-        if ((item.type === 'hymn' || item.type === 'bible-verse') && currentVerseIndex !== undefined) {
+        if (ref) {
+            dataToSet.ref = ref;
+        }
+        if ((type === 'hymn' || type === 'bible-verse') && currentVerseIndex !== undefined) {
             dataToSet.currentVerseIndex = currentVerseIndex;
         }
         await setDoc(liveDisplayRef, dataToSet);
-        revalidatePath('/');
-        return { type: 'success', message: `Displaying "${item.type}" now.` };
+        return { type: 'success', message: `Displaying "${type}" now.` };
     } catch (error) {
         console.error("Error setting live display:", error);
         return { type: 'error', message: 'Failed to update live display.' };
@@ -124,7 +125,6 @@ export async function stopLiveDisplayAction() {
     try {
         const liveDisplayRef = doc(db, 'live', 'current');
         await setDoc(liveDisplayRef, { type: 'none', timestamp: serverTimestamp() });
-        revalidatePath('/');
         return { type: 'success', message: 'Live display stopped.' };
     } catch (error) {
         console.error("Error stopping live display:", error);
