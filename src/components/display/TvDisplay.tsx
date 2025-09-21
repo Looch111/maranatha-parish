@@ -5,7 +5,7 @@ import type { WelcomeMessage, Announcement, Event, Hymn, BibleVerse, WhatsNext, 
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AnnouncementsCard } from '@/components/display/AnnouncementsCard';
 import { EventsCard } from '@/components/display/EventsCard';
 import { HymnCard } from '@/components/display/HymnCard';
@@ -15,6 +15,8 @@ import { ClosingCard } from '@/components/display/ClosingCard';
 import { useFirestore, getDocument } from '@/hooks/use-firestore';
 import Link from 'next/link';
 import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
+import { Expand, Shrink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function Clock() {
   const [date, setDate] = useState<Date | null>(null);
@@ -198,6 +200,38 @@ const ImageSlideshow = () => {
     )
 }
 
+function FullscreenToggle() {
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    };
+
+    return (
+        <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:text-white hover:bg-white/20 z-20">
+            {isFullscreen ? <Shrink /> : <Expand />}
+            <span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+        </Button>
+    );
+}
+
+
 const DisplayWrapper = ({ children, backgroundType }: { children: React.ReactNode, backgroundType: 'image' | 'video' }) => {
     return (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden text-white p-8">
@@ -221,7 +255,10 @@ const DisplayWrapper = ({ children, backgroundType }: { children: React.ReactNod
                     <Image src="https://i.imgur.com/YryK4qj.png" alt="Maranatha Parish Logo" width={50} height={50} className="h-12 w-12 bg-white rounded-full p-1" />
                     <span className="font-headline text-5xl drop-shadow-md">Maranatha Parish</span>
                 </Link>
-                <Clock />
+                <div className="flex items-center gap-4">
+                  <Clock />
+                  <FullscreenToggle />
+                </div>
             </header>
 
             <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -263,7 +300,7 @@ export function TvDisplay() {
         ? `${liveDisplayItem.type}-${(liveDisplayItem.data as any)?.id}-${liveDisplayItem.currentVerseIndex}` 
         : 'loading';
 
-    const backgroundType = liveDisplayItem?.type === 'closing' ? 'video' : 'image';
+    const backgroundType = (liveDisplayItem?.type === 'closing' || (liveDisplayItem?.type === 'none' && !liveDisplayItem?.data)) ? 'video' : 'image';
 
     return (
         <DisplayWrapper backgroundType={backgroundType}>
