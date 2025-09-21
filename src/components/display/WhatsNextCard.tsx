@@ -3,6 +3,10 @@ import type { WhatsNext } from '@/lib/types';
 import { Forward } from 'lucide-react';
 
 export function WhatsNextCard({ data }: { data: WhatsNext }) {
+    if (!data) {
+        return null;
+    }
+
     return (
         <div className="w-full max-w-4xl bg-black/30 backdrop-blur-sm rounded-2xl p-12 border border-white/20 shadow-2xl text-center">
             <div className="flex items-center gap-4 justify-center mb-6">
