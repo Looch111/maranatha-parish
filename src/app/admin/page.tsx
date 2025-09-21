@@ -54,13 +54,13 @@ export default function AdminPage() {
                          <SeedDatabase />
                     ) : (
                         <AdminDashboard
-                            initialWelcomeMessage={welcomeMessage || defaultWelcomeMessage}
-                            initialAnnouncements={announcements || []}
-                            initialEvents={events || []}
-                            initialHymns={hymns || []}
-                            initialBibleVerses={bibleVerses || []}
-                            initialWhatsNext={whatsNext || defaultWhatsNext}
-                            initialClosingMessage={closingMessage || defaultClosingMessage}
+                            welcomeMessage={welcomeMessage || defaultWelcomeMessage}
+                            announcements={announcements || []}
+                            events={events || []}
+                            hymns={hymns || []}
+                            bibleVerses={bibleVerses || []}
+                            whatsNext={whatsNext || defaultWhatsNext}
+                            closingMessage={closingMessage || defaultClosingMessage}
                         />
                     )}
                 </CardContent>

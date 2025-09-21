@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage } from '@/lib/types';
@@ -11,13 +12,13 @@ import { useFirestore } from '@/hooks/use-firestore';
 import type { LiveDisplayItem } from '@/lib/types';
 
 interface LiveControlManagerProps {
-    initialWelcomeMessage: WelcomeMessage;
-    initialAnnouncements: Announcement[];
-    initialEvents: Event[];
-    initialHymns: Hymn[];
-    initialBibleVerses: BibleVerse[];
-    initialWhatsNext: WhatsNext;
-    initialClosingMessage: ClosingMessage;
+    welcomeMessage: WelcomeMessage;
+    announcements: Announcement[];
+    events: Event[];
+    hymns: Hymn[];
+    bibleVerses: BibleVerse[];
+    whatsNext: WhatsNext;
+    closingMessage: ClosingMessage;
 }
 
 type DisplayItem = {
@@ -67,13 +68,13 @@ const getTypeString = (item: DisplayItem): string => {
 
 
 export function LiveControlManager({
-    initialWelcomeMessage,
-    initialAnnouncements,
-    initialEvents,
-    initialHymns,
-    initialBibleVerses,
-    initialWhatsNext,
-    initialClosingMessage,
+    welcomeMessage,
+    announcements,
+    events,
+    hymns,
+    bibleVerses,
+    whatsNext,
+    closingMessage,
 }: LiveControlManagerProps) {
     const { toast } = useToast();
     const liveDisplay = useFirestore<LiveDisplayItem>('live/current');
@@ -92,13 +93,13 @@ export function LiveControlManager({
     const nowPlaying = liveDisplay && liveDisplay.type !== 'none' ? liveDisplay : null;
 
     const allContent: DisplayItem[] = [
-        { type: 'welcome', data: initialWelcomeMessage },
-        ...(initialAnnouncements.length > 0 ? [{ type: 'announcements', data: initialAnnouncements }] : []),
-        ...(initialEvents.length > 0 ? [{ type: 'events', data: initialEvents }] : []),
-        ...initialHymns.map(h => ({ type: 'hymn', data: h, id: h.id })),
-        ...initialBibleVerses.map(b => ({ type: 'bible-verse', data: b, id: b.id })),
-        { type: 'whats-next', data: initialWhatsNext },
-        { type: 'closing', data: initialClosingMessage }
+        { type: 'welcome', data: welcomeMessage },
+        ...(announcements.length > 0 ? [{ type: 'announcements', data: announcements }] : []),
+        ...(events.length > 0 ? [{ type: 'events', data: events }] : []),
+        ...hymns.map(h => ({ type: 'hymn', data: h, id: h.id })),
+        ...bibleVerses.map(b => ({ type: 'bible-verse', data: b, id: b.id })),
+        { type: 'whats-next', data: whatsNext },
+        { type: 'closing', data: closingMessage }
     ].filter(item => item && item.data);
 
     const handleDisplay = async (item: DisplayItem) => {
@@ -206,7 +207,7 @@ export function LiveControlManager({
                                         </TableCell>
                                         <TableCell className="max-w-sm truncate">{getTitle(item)}</TableCell>
                                         <TableCell className="text-right space-x-2">
-                                           {isPlaying && (item.type === 'hymn' || (item.type === 'bible-verse' && item.data.text.length > 1)) && (
+                                           {isPlaying && (item.type === 'hymn' || (item.type === 'bible-verse' && Array.isArray(item.data.text) && item.data.text.length > 1)) && (
                                                 <>
                                                     <Button variant="outline" size="sm" onClick={() => changeVerse('prev')}>
                                                         <ArrowLeft className="mr-2 h-4 w-4" /> Prev

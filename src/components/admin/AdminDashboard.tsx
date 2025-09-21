@@ -1,3 +1,4 @@
+
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WelcomeForm } from '@/components/admin/WelcomeForm';
@@ -12,23 +13,23 @@ import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, 
 import { MessageSquare, Calendar, Megaphone, Music, BookOpen, Forward, Tv, LogOut } from 'lucide-react';
 
 interface AdminDashboardProps {
-    initialWelcomeMessage: WelcomeMessage;
-    initialAnnouncements: Announcement[];
-    initialEvents: Event[];
-    initialHymns: Hymn[];
-    initialBibleVerses: BibleVerse[];
-    initialWhatsNext: WhatsNext;
-    initialClosingMessage: ClosingMessage;
+    welcomeMessage: WelcomeMessage;
+    announcements: Announcement[];
+    events: Event[];
+    hymns: Hymn[];
+    bibleVerses: BibleVerse[];
+    whatsNext: WhatsNext;
+    closingMessage: ClosingMessage;
 }
 
 export function AdminDashboard({
-    initialWelcomeMessage,
-    initialAnnouncements,
-    initialEvents,
-    initialHymns,
-    initialBibleVerses,
-    initialWhatsNext,
-    initialClosingMessage
+    welcomeMessage,
+    announcements,
+    events,
+    hymns,
+    bibleVerses,
+    whatsNext,
+    closingMessage
 }: AdminDashboardProps) {
 
     return (
@@ -45,35 +46,35 @@ export function AdminDashboard({
             </TabsList>
             <TabsContent value="live-control" className="mt-4">
                 <LiveControlManager 
-                    initialWelcomeMessage={initialWelcomeMessage}
-                    initialAnnouncements={initialAnnouncements}
-                    initialEvents={initialEvents}
-                    initialHymns={initialHymns}
-                    initialBibleVerses={initialBibleVerses}
-                    initialWhatsNext={initialWhatsNext}
-                    initialClosingMessage={initialClosingMessage}
+                    welcomeMessage={welcomeMessage}
+                    announcements={announcements}
+                    events={events}
+                    hymns={hymns}
+                    bibleVerses={bibleVerses}
+                    whatsNext={whatsNext}
+                    closingMessage={closingMessage}
                 />
             </TabsContent>
             <TabsContent value="welcome" className="mt-4">
-                <WelcomeForm initialData={initialWelcomeMessage} />
+                <WelcomeForm initialData={welcomeMessage} />
             </TabsContent>
             <TabsContent value="announcements" className="mt-4">
-                <AnnouncementsManager initialData={initialAnnouncements} />
+                <AnnouncementsManager data={announcements} />
             </TabsContent>
             <TabsContent value="events" className="mt-4">
-                <EventsManager initialData={initialEvents} />
+                <EventsManager data={events} />
             </TabsContent>
             <TabsContent value="hymns" className="mt-4">
-                <HymnsManager initialData={initialHymns} />
+                <HymnsManager data={hymns} />
             </TabsContent>
             <TabsContent value="bible-verses" className="mt-4">
-                <BibleVerseManager initialData={initialBibleVerses} />
+                <BibleVerseManager data={bibleVerses} />
             </TabsContent>
             <TabsContent value="whats-next" className="mt-4">
-                <WhatsNextForm initialData={initialWhatsNext} />
+                <WhatsNextForm initialData={whatsNext} />
             </TabsContent>
             <TabsContent value="closing" className="mt-4">
-                <ClosingForm initialData={initialClosingMessage} />
+                <ClosingForm initialData={closingMessage} />
             </TabsContent>
         </Tabs>
     );

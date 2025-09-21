@@ -70,7 +70,7 @@ function EventForm({ event, onOpenChange }: { event?: Event, onOpenChange: (open
   );
 }
 
-export function EventsManager({ initialData }: { initialData: Event[] }) {
+export function EventsManager({ data }: { data: Event[] }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Event | undefined>(undefined);
@@ -115,7 +115,7 @@ export function EventsManager({ initialData }: { initialData: Event[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialData.map((evt) => (
+            {data.map((evt) => (
               <TableRow key={evt.id}>
                 <TableCell className="font-medium">{evt.name}</TableCell>
                 <TableCell>{format(new Date(evt.date), 'EEE, MMM d, yyyy')} at {evt.time}</TableCell>
@@ -130,7 +130,7 @@ export function EventsManager({ initialData }: { initialData: Event[] }) {
                 </TableCell>
               </TableRow>
             ))}
-            {initialData.length === 0 && (
+            {data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground">No events found.</TableCell>
               </TableRow>

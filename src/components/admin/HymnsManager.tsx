@@ -34,6 +34,14 @@ function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: bo
   const [state, formAction] = useActionState(saveHymnAction, { type: 'idle' });
   const [verses, setVerses] = useState<string[]>(hymn?.lyrics || ['']);
 
+  useEffect(() => {
+    if (hymn) {
+      setVerses(hymn.lyrics);
+    } else {
+      setVerses(['']);
+    }
+  }, [hymn]);
+
   const addVerse = () => setVerses([...verses, '']);
   const removeVerse = (index: number) => setVerses(verses.filter((_, i) => i !== index));
   const updateVerse = (index: number, value: string) => {
@@ -93,7 +101,7 @@ function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: bo
   );
 }
 
-export function HymnsManager({ initialData }: { initialData: Hymn[] }) {
+export function HymnsManager({ data }: { data: Hymn[] }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Hymn | undefined>(undefined);
@@ -137,7 +145,7 @@ export function HymnsManager({ initialData }: { initialData: Hymn[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialData.map((hymn) => (
+            {data.map((hymn) => (
               <TableRow key={hymn.id}>
                 <TableCell className="font-medium">{hymn.title}</TableCell>
                 <TableCell className="max-w-sm truncate">{hymn.lyrics.join(' ')}</TableCell>
@@ -151,7 +159,7 @@ export function HymnsManager({ initialData }: { initialData: Hymn[] }) {
                 </TableCell>
               </TableRow>
             ))}
-             {initialData.length === 0 && (
+             {data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground">No hymns found.</TableCell>
               </TableRow>

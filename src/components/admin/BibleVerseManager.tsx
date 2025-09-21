@@ -138,7 +138,7 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
   );
 }
 
-export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }) {
+export function BibleVerseManager({ data }: { data: BibleVerse[] }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<BibleVerse | undefined>(undefined);
@@ -182,7 +182,7 @@ export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialData.map((verse) => (
+            {data.map((verse) => (
               <TableRow key={verse.id}>
                 <TableCell className="font-medium">{verse.reference}</TableCell>
                 <TableCell className="max-w-sm truncate">
@@ -198,7 +198,7 @@ export function BibleVerseManager({ initialData }: { initialData: BibleVerse[] }
                 </TableCell>
               </TableRow>
             ))}
-             {initialData.length === 0 && (
+             {data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground">No Bible verses found.</TableCell>
               </TableRow>

@@ -65,7 +65,7 @@ function AnnouncementForm({ announcement, onOpenChange }: { announcement?: Annou
   );
 }
 
-export function AnnouncementsManager({ initialData }: { initialData: Announcement[] }) {
+export function AnnouncementsManager({ data }: { data: Announcement[] }) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Announcement | undefined>(undefined);
@@ -109,7 +109,7 @@ export function AnnouncementsManager({ initialData }: { initialData: Announcemen
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialData.map((ann) => (
+            {data.map((ann) => (
               <TableRow key={ann.id}>
                 <TableCell className="font-medium">{ann.title}</TableCell>
                 <TableCell className="max-w-sm truncate">{ann.content}</TableCell>
@@ -123,7 +123,7 @@ export function AnnouncementsManager({ initialData }: { initialData: Announcemen
                 </TableCell>
               </TableRow>
             ))}
-             {initialData.length === 0 && (
+             {data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground">No announcements found.</TableCell>
               </TableRow>
