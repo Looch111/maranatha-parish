@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -36,7 +37,7 @@ export async function getBibleVerseAction(reference: string) {
     }
     try {
         const result = await getBibleVerseText({ reference });
-        return { type: 'success', text: result.text };
+        return { type: 'success', text: result.text, correctedReference: result.correctedReference };
     } catch (error) {
         console.error("AI verse fetch failed:", error);
         return { type: 'error', message: 'Failed to fetch verse. Please check the reference.' };

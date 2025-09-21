@@ -46,6 +46,16 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
   };
   
   useEffect(() => {
+    if (verse) {
+        setReference(verse.reference);
+        setTextParts(Array.isArray(verse.text) ? verse.text : [verse.text]);
+    } else {
+        setReference('');
+        setTextParts(['']);
+    }
+  }, [verse]);
+
+  useEffect(() => {
     if (state.type === 'success') {
       toast({ title: 'Success', description: state.message });
       onOpenChange(false);
@@ -62,6 +72,9 @@ function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenCha
       const result = await getBibleVerseAction(reference);
       if (result.type === 'success' && result.text) {
         setTextParts(result.text);
+        if (result.correctedReference) {
+          setReference(result.correctedReference);
+        }
         toast({ title: 'Verse Fetched!', description: 'The verse text has been automatically split.' });
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
