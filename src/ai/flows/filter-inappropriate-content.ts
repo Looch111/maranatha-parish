@@ -35,6 +35,7 @@ const FilterInappropriateContentOutputSchema = z.object({
     .describe(
       'The reason why the message is considered inappropriate, if applicable.'
     ),
+    correctedMessage: z.string().describe('The corrected version of the message, with any spelling or grammatical errors fixed.'),
 });
 export type FilterInappropriateContentOutput = z.infer<
   typeof FilterInappropriateContentOutputSchema
@@ -50,14 +51,15 @@ const prompt = ai.definePrompt({
   name: 'filterInappropriateContentPrompt',
   input: {schema: FilterInappropriateContentInputSchema},
   output: {schema: FilterInappropriateContentOutputSchema},
-  prompt: `You are an AI content filter that checks if a message is appropriate based on the parish guidelines.
+  prompt: `You are an AI content filter and proofreader that checks if a message is appropriate and grammatically correct based on the parish guidelines.
 
 Parish Guidelines: {{{parishGuidelines}}}
 
 Message: {{{message}}}
 
-Based on the parish guidelines, determine if the message is appropriate. If it is not, explain why.
-Set the isAppropriate field to true if appropriate, and false if not. If isAppropriate is false, also populate the reason field.`,
+1.  **Check for Appropriateness**: Based on the parish guidelines, determine if the message is appropriate. If it is not, explain why. Set the isAppropriate field to true if appropriate, and false if not. If isAppropriate is false, also populate the reason field.
+2.  **Correct Spelling and Grammar**: Review the message for any spelling or grammar errors.
+3.  **Return Corrected Message**: Populate the 'correctedMessage' field with the proofread and corrected version of the message. If no corrections are needed, return the original message. If the message is inappropriate, you should still return a corrected version of the original text.`,
 });
 
 const filterInappropriateContentFlow = ai.defineFlow(

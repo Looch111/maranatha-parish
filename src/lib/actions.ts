@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
 import { collection, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
 import { z } from 'zod';
-import { filterInappropriateContent } from '@/ai/flows/filter-inappropriate-content';
+import { filterInappropriateContent, type FilterInappropriateContentOutput } from '@/ai/flows/filter-inappropriate-content';
 import { getBibleVerseText } from '@/ai/flows/get-bible-verse-flow';
 import type { DisplayItem } from '@/lib/types';
 
@@ -16,7 +16,7 @@ type FormState = {
 
 const parishGuidelines = "Content must be family-friendly, respectful, and relevant to church activities. No profanity, hate speech, or political content is allowed. Keep messages positive and welcoming.";
 
-const checkContent = async (message: string) => {
+const checkContent = async (message: string): Promise<FilterInappropriateContentOutput> => {
     try {
         const result = await filterInappropriateContent({
             message,
@@ -25,8 +25,8 @@ const checkContent = async (message: string) => {
         return result;
     } catch (error) {
         console.error("AI content filter failed:", error);
-        // Fail open: if the filter fails, assume the content is appropriate to not block users.
-        return { isAppropriate: true };
+        // Fail open: if the filter fails, assume the content is appropriate and return original message.
+        return { isAppropriate: true, correctedMessage: message };
     }
 };
 
@@ -151,18 +151,25 @@ export async function updateWelcomeMessageAction(prevState: FormState, formData:
     };
   }
   
-  const fullMessage = `${validatedFields.data.message} ${validatedFields.data.subtitle || ''}`;
-  const contentCheck = await checkContent(fullMessage);
-  if (!contentCheck.isAppropriate) {
-    return {
-      type: 'error',
-      message: contentCheck.reason || "This message was flagged as inappropriate."
-    };
+  const { message, subtitle } = validatedFields.data;
+  
+  const messageCheck = await checkContent(message);
+  if (!messageCheck.isAppropriate) {
+    return { type: 'error', message: messageCheck.reason || "The main message was flagged as inappropriate." };
+  }
+  
+  let correctedSubtitle = subtitle;
+  if (subtitle) {
+      const subtitleCheck = await checkContent(subtitle);
+      if (!subtitleCheck.isAppropriate) {
+          return { type: 'error', message: subtitleCheck.reason || "The subtitle was flagged as inappropriate." };
+      }
+      correctedSubtitle = subtitleCheck.correctedMessage;
   }
 
   try {
     const welcomeRef = doc(db, 'content', 'welcome');
-    await setDoc(welcomeRef, validatedFields.data, { merge: true });
+    await setDoc(welcomeRef, { message: messageCheck.correctedMessage, subtitle: correctedSubtitle }, { merge: true });
     revalidatePath('/admin');
     return { type: 'success', message: 'Welcome message updated successfully!' };
   } catch (error) {
@@ -190,18 +197,26 @@ export async function saveAnnouncementAction(prevState: FormState, formData: For
 
   const { id, title, content } = validatedFields.data;
   
-  const contentCheck = await checkContent(`${title}: ${content}`);
-  if (!contentCheck.isAppropriate) {
-    return { type: 'error', errors: { content: [contentCheck.reason || "This announcement was flagged as inappropriate."] }};
+  const titleCheck = await checkContent(title);
+  if (!titleCheck.isAppropriate) {
+    return { type: 'error', errors: { title: [titleCheck.reason || "This title was flagged as inappropriate."] }};
   }
+
+  const contentCheck = await checkContent(content);
+  if (!contentCheck.isAppropriate) {
+    return { type: 'error', errors: { content: [contentCheck.reason || "This content was flagged as inappropriate."] }};
+  }
+  
+  const correctedTitle = titleCheck.correctedMessage;
+  const correctedContent = contentCheck.correctedMessage;
 
   try {
     if (id) {
        const announcementRef = doc(db, 'announcements', id);
-       await updateDoc(announcementRef, { title, content });
+       await updateDoc(announcementRef, { title: correctedTitle, content: correctedContent });
     } else {
        const announcementCollection = collection(db, 'announcements');
-       await addDoc(announcementCollection, { title, content, createdAt: serverTimestamp() });
+       await addDoc(announcementCollection, { title: correctedTitle, content: correctedContent, createdAt: serverTimestamp() });
     }
     revalidatePath('/admin');
     return { type: 'success', message: `Announcement ${id ? 'updated' : 'added'} successfully!` };
@@ -246,7 +261,23 @@ export async function saveEventAction(prevState: any, formData: FormData): Promi
         return { type: 'error', errors: validatedFields.error.flatten().fieldErrors };
     }
 
-    const { id, ...data } = validatedFields.data;
+    const { id, name, location, ...rest } = validatedFields.data;
+
+    const nameCheck = await checkContent(name);
+    if (!nameCheck.isAppropriate) {
+        return { type: 'error', errors: { name: [nameCheck.reason || "This name was flagged as inappropriate."] }};
+    }
+
+    const locationCheck = await checkContent(location);
+    if (!locationCheck.isAppropriate) {
+        return { type: 'error', errors: { location: [locationCheck.reason || "This location was flagged as inappropriate."] }};
+    }
+
+    const data = {
+        ...rest,
+        name: nameCheck.correctedMessage,
+        location: locationCheck.correctedMessage,
+    };
 
     try {
         if (id) {
@@ -300,18 +331,29 @@ export async function saveHymnAction(prevState: FormState, formData: FormData): 
 
     const { id, title, lyrics: validatedLyrics } = validatedFields.data;
     
-    const contentCheck = await checkContent(`${title}: ${validatedLyrics.join('\n')}`);
-    if (!contentCheck.isAppropriate) {
-        return { type: 'error', errors: { lyrics: [contentCheck.reason || "This hymn was flagged as inappropriate."] }};
+    const titleCheck = await checkContent(title);
+    if (!titleCheck.isAppropriate) {
+        return { type: 'error', errors: { title: [titleCheck.reason || "This title was flagged as inappropriate."] }};
     }
+
+    const correctedLyrics = [];
+    for (const lyric of validatedLyrics) {
+        const lyricCheck = await checkContent(lyric);
+        if (!lyricCheck.isAppropriate) {
+            return { type: 'error', errors: { lyrics: [lyricCheck.reason || "A verse was flagged as inappropriate."] }};
+        }
+        correctedLyrics.push(lyricCheck.correctedMessage);
+    }
+    
+    const correctedTitle = titleCheck.correctedMessage;
 
     try {
         if (id) {
             const hymnRef = doc(db, 'hymns', id);
-            await updateDoc(hymnRef, { title, lyrics: validatedLyrics });
+            await updateDoc(hymnRef, { title: correctedTitle, lyrics: correctedLyrics });
         } else {
             const hymnCollection = collection(db, 'hymns');
-            await addDoc(hymnCollection, { title, lyrics: validatedLyrics });
+            await addDoc(hymnCollection, { title: correctedTitle, lyrics: correctedLyrics });
         }
         revalidatePath('/admin');
         return { type: 'success', message: `Hymn ${id ? 'updated' : 'added'} successfully!` };
@@ -357,11 +399,8 @@ export async function saveBibleVerseAction(prevState: FormState, formData: FormD
 
     const { id, reference, text } = validatedFields.data;
     
-    const contentCheck = await checkContent(`${reference}: ${text.join(' ')}`);
-    if (!contentCheck.isAppropriate) {
-        return { type: 'error', errors: { text: [contentCheck.reason || "This Bible verse was flagged as inappropriate."] }};
-    }
-
+    // No need to content check bible verses.
+    
     try {
         if (id) {
             const verseRef = doc(db, 'bible-verses', id);
@@ -416,7 +455,7 @@ export async function updateWhatsNextAction(prevState: FormState, formData: Form
 
   try {
     const whatsNextRef = doc(db, 'content', 'whats-next');
-    await setDoc(whatsNextRef, validatedFields.data, { merge: true });
+    await setDoc(whatsNextRef, { message: contentCheck.correctedMessage }, { merge: true });
     revalidatePath('/admin');
     return { type: 'success', message: 'What\'s next message updated successfully!' };
   } catch (error) {
@@ -451,7 +490,7 @@ export async function updateClosingMessageAction(prevState: FormState, formData:
 
   try {
     const closingRef = doc(db, 'content', 'closing');
-    await setDoc(closingRef, validatedFields.data, { merge: true });
+    await setDoc(closingRef, { message: contentCheck.correctedMessage }, { merge: true });
     revalidatePath('/admin');
     return { type: 'success', message: 'Closing message updated successfully!' };
   } catch (error) {
