@@ -153,6 +153,7 @@ function DefaultDisplay() {
         );
     }
 
+    // This is now just a fallback if the welcome message is explicitly called or on first load.
     const displayMessage = welcomeMessage || { id: 'welcome', message: 'Welcome To Maranatha', subtitle: 'We Are Glad You Have Joined Us' };
 
     return <WelcomeCard data={displayMessage} />;
@@ -304,9 +305,11 @@ function LiveItemDisplay({ liveRef }: { liveRef: LiveDisplayRef }) {
         case 'closing':
             return <ClosingCard data={data as ClosingMessage} />;
         case 'none':
-            return <DefaultDisplay />;
+            // Render nothing for the 'none' state, as the background is the main content.
+            return null;
         default:
-            return <DefaultDisplay />;
+            // Fallback to the same 'none' behavior
+            return null;
     }
 }
 
@@ -334,6 +337,7 @@ export function TvDisplay() {
                     {liveDisplayRef ? (
                         <LiveItemDisplay liveRef={liveDisplayRef} />
                     ) : (
+                         // On initial load, show skeleton or default content
                         <DefaultDisplay />
                     )}
                 </motion.div>
@@ -341,5 +345,7 @@ export function TvDisplay() {
         </DisplayWrapper>
     );
 }
+
+    
 
     
