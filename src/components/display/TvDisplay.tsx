@@ -106,6 +106,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
     const [animationKey, setAnimationKey] = useState(0);
 
     useEffect(() => {
+        if (!data || !data.message) return;
         const titleDuration = (data.message.length * 0.06) * 1000;
         const subtitleDelay = 500;
         const subtitleDuration = (data.subtitle?.length || 0) * 0.06 * 1000;
@@ -118,6 +119,10 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
 
         return () => clearInterval(interval);
     }, [data]);
+    
+    if (!data || !data.message) {
+        return null; // Don't render anything if data is not available yet.
+    }
 
     const subtitleDelayInSeconds = (data.message.length * 0.04) + 0.5;
 
@@ -140,7 +145,7 @@ function WelcomeCard({ data }: { data: WelcomeMessage }) {
 function DefaultDisplay() {
     const welcomeMessage = useFirestore<WelcomeMessage>('content/welcome');
    
-    if (!welcomeMessage) {
+    if (welcomeMessage === undefined) {
         return (
              <div className="w-full h-screen flex items-center justify-center">
                 <Skeleton className="h-96 w-full max-w-2xl bg-white/10" />
@@ -267,11 +272,13 @@ function LiveItemDisplay({ liveRef }: { liveRef: LiveDisplayRef }) {
         'bible-verses': 'reference',
     }
 
-    const orderField = liveRef.ref ? collectionMap[liveRef.ref] : undefined;
+    const path = liveRef.ref ? liveRef.ref : liveRef.type;
+    const isCollection = ['announcements', 'events'].includes(liveRef.type);
+    const orderField = isCollection ? collectionMap[liveRef.type] : undefined;
     const orderDir = 'asc';
     
     // This hook fetches the actual data based on the reference.
-    const data = useFirestore(liveRef.ref || liveRef.type, orderField, orderDir);
+    const data = useFirestore(path, orderField, orderDir);
 
     if (data === undefined) {
          return (
@@ -311,7 +318,7 @@ export function TvDisplay() {
         ? `${liveDisplayRef.type}-${liveDisplayRef.ref}-${liveDisplayRef.currentVerseIndex}` 
         : 'loading';
 
-    const backgroundType = (liveDisplayRef?.type === 'closing' || liveDisplayRef?.type === 'none') ? 'video' : 'image';
+    const backgroundType = (liveDisplayRef?.type === 'closing' || !liveDisplayRef || liveDisplayRef?.type === 'none') ? 'video' : 'image';
 
     return (
         <DisplayWrapper backgroundType={backgroundType}>
@@ -334,3 +341,5 @@ export function TvDisplay() {
         </DisplayWrapper>
     );
 }
+
+    
