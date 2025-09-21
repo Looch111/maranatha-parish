@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect, useRef, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveAnnouncementAction, deleteAnnouncementAction } from '@/lib/actions';
 import type { Announcement } from '@/lib/types';
@@ -31,7 +31,7 @@ function SubmitButton() {
 function AnnouncementForm({ announcement, onOpenChange }: { announcement?: Announcement, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(saveAnnouncementAction, { type: 'idle' });
+  const [state, formAction] = useFormState(saveAnnouncementAction, { type: 'idle' });
 
   useEffect(() => {
     if (state.type === 'success') {
@@ -88,7 +88,7 @@ export function AnnouncementsManager({ data }: { data: Announcement[] }) {
           <DialogTrigger asChild>
             <Button onClick={() => setSelected(undefined)}><PlusCircle className="mr-2" /> Add Announcement</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{selected ? 'Edit' : 'Add'} Announcement</DialogTitle>
               <DialogDescription>
@@ -112,7 +112,7 @@ export function AnnouncementsManager({ data }: { data: Announcement[] }) {
             {data.map((ann) => (
               <TableRow key={ann.id}>
                 <TableCell className="font-medium">{ann.title}</TableCell>
-                <TableCell className="max-w-sm truncate">{ann.content}</TableCell>
+                <TableCell className="max-w-xs sm:max-w-sm truncate">{ann.content}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setSelected(ann); setOpen(true); }}>
                     <Edit className="h-4 w-4" />

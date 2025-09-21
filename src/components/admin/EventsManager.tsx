@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect, useRef, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveEventAction, deleteEventAction } from '@/lib/actions';
 import type { Event } from '@/lib/types';
@@ -22,7 +22,7 @@ function SubmitButton() {
 function EventForm({ event, onOpenChange }: { event?: Event, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(saveEventAction, { type: 'idle' });
+  const [state, formAction] = useFormState(saveEventAction, { type: 'idle' });
 
   useEffect(() => {
     if (state.type === 'success') {
@@ -93,7 +93,7 @@ export function EventsManager({ data }: { data: Event[] }) {
           <DialogTrigger asChild>
             <Button onClick={() => setSelected(undefined)}><PlusCircle className="mr-2" /> Add Event</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{selected ? 'Edit' : 'Add'} Event</DialogTitle>
               <DialogDescription>

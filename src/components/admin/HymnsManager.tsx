@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect, useRef, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveHymnAction, deleteHymnAction } from '@/lib/actions';
 import type { Hymn } from '@/lib/types';
@@ -31,7 +31,7 @@ function SubmitButton() {
 function HymnForm({ hymn, onOpenChange }: { hymn?: Hymn, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(saveHymnAction, { type: 'idle' });
+  const [state, formAction] = useFormState(saveHymnAction, { type: 'idle' });
   const [verses, setVerses] = useState<string[]>(hymn?.lyrics || ['']);
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export function HymnsManager({ data }: { data: Hymn[] }) {
           <DialogTrigger asChild>
             <Button onClick={() => setSelected(undefined)}><PlusCircle className="mr-2" /> Add Hymn</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{selected ? 'Edit' : 'Add'} Hymn</DialogTitle>
               <DialogDescription>
@@ -148,7 +148,7 @@ export function HymnsManager({ data }: { data: Hymn[] }) {
             {data.map((hymn) => (
               <TableRow key={hymn.id}>
                 <TableCell className="font-medium">{hymn.title}</TableCell>
-                <TableCell className="max-w-sm truncate">{hymn.lyrics.join(' ')}</TableCell>
+                <TableCell className="max-w-xs sm:max-w-sm truncate">{hymn.lyrics.join(' ')}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setSelected(hymn); setOpen(true); }}>
                     <Edit className="h-4 w-4" />

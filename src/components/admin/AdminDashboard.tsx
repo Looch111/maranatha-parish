@@ -11,6 +11,7 @@ import { ClosingForm } from '@/components/admin/ClosingForm';
 import { LiveControlManager } from '@/components/admin/LiveControlManager';
 import type { Announcement, Event, WelcomeMessage, Hymn, BibleVerse, WhatsNext, ClosingMessage } from '@/lib/types';
 import { MessageSquare, Calendar, Megaphone, Music, BookOpen, Forward, Tv, LogOut } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface AdminDashboardProps {
     welcomeMessage: WelcomeMessage;
@@ -34,16 +35,33 @@ export function AdminDashboard({
 
     return (
         <Tabs defaultValue="live-control" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 lg:grid-cols-8">
-                <TabsTrigger value="live-control"><Tv className="mr-2" /> Live Control</TabsTrigger>
-                <TabsTrigger value="welcome"><MessageSquare className="mr-2" /> Welcome</TabsTrigger>
-                <TabsTrigger value="announcements"><Megaphone className="mr-2" /> Announcements</TabsTrigger>
-                <TabsTrigger value="events"><Calendar className="mr-2" /> Events</TabsTrigger>
-                <TabsTrigger value="hymns"><Music className="mr-2" /> Hymns</TabsTrigger>
-                <TabsTrigger value="bible-verses"><BookOpen className="mr-2" /> Bible Verses</TabsTrigger>
-                <TabsTrigger value="whats-next"><Forward className="mr-2" /> What's Next</TabsTrigger>
-                <TabsTrigger value="closing"><LogOut className="mr-2" /> Closing</TabsTrigger>
-            </TabsList>
+            <div className="sm:hidden">
+                 <ScrollArea className="w-full whitespace-nowrap">
+                    <TabsList>
+                        <TabsTrigger value="live-control"><Tv className="mr-2" /> Live Control</TabsTrigger>
+                        <TabsTrigger value="welcome"><MessageSquare className="mr-2" /> Welcome</TabsTrigger>
+                        <TabsTrigger value="announcements"><Megaphone className="mr-2" /> Announcements</TabsTrigger>
+                        <TabsTrigger value="events"><Calendar className="mr-2" /> Events</TabsTrigger>
+                        <TabsTrigger value="hymns"><Music className="mr-2" /> Hymns</TabsTrigger>
+                        <TabsTrigger value="bible-verses"><BookOpen className="mr-2" /> Bible Verses</TabsTrigger>
+                        <TabsTrigger value="whats-next"><Forward className="mr-2" /> What's Next</TabsTrigger>
+                        <TabsTrigger value="closing"><LogOut className="mr-2" /> Closing</TabsTrigger>
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+            </div>
+            <div className="hidden sm:block">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 lg:grid-cols-8">
+                    <TabsTrigger value="live-control"><Tv className="mr-2" /> Live Control</TabsTrigger>
+                    <TabsTrigger value="welcome"><MessageSquare className="mr-2" /> Welcome</TabsTrigger>
+                    <TabsTrigger value="announcements"><Megaphone className="mr-2" /> Announcements</TabsTrigger>
+                    <TabsTrigger value="events"><Calendar className="mr-2" /> Events</TabsTrigger>
+                    <TabsTrigger value="hymns"><Music className="mr-2" /> Hymns</TabsTrigger>
+                    <TabsTrigger value="bible-verses"><BookOpen className="mr-2" /> Bible Verses</TabsTrigger>
+                    <TabsTrigger value="whats-next"><Forward className="mr-2" /> What's Next</TabsTrigger>
+                    <TabsTrigger value="closing"><LogOut className="mr-2" /> Closing</TabsTrigger>
+                </TabsList>
+            </div>
             <TabsContent value="live-control" className="mt-4">
                 <LiveControlManager 
                     welcomeMessage={welcomeMessage}

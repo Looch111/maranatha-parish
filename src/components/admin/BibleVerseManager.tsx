@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useEffect, useRef, useActionState, useTransition } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useFormState, useFormStatus, useTransition } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { saveBibleVerseAction, deleteBibleVerseAction, getBibleVerseAction } from '@/lib/actions';
 import type { BibleVerse } from '@/lib/types';
@@ -31,7 +31,7 @@ function SubmitButton() {
 function BibleVerseForm({ verse, onOpenChange }: { verse?: BibleVerse, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction] = useActionState(saveBibleVerseAction, { type: 'idle' });
+  const [state, formAction] = useFormState(saveBibleVerseAction, { type: 'idle' });
   const [isFetching, startFetching] = useTransition();
 
   const [reference, setReference] = useState(verse?.reference || '');
@@ -161,7 +161,7 @@ export function BibleVerseManager({ data }: { data: BibleVerse[] }) {
           <DialogTrigger asChild>
             <Button onClick={() => setSelected(undefined)}><PlusCircle className="mr-2" /> Add Bible Verse</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{selected ? 'Edit' : 'Add'} Bible Verse</DialogTitle>
               <DialogDescription>
@@ -185,7 +185,7 @@ export function BibleVerseManager({ data }: { data: BibleVerse[] }) {
             {data.map((verse) => (
               <TableRow key={verse.id}>
                 <TableCell className="font-medium">{verse.reference}</TableCell>
-                <TableCell className="max-w-sm truncate">
+                <TableCell className="max-w-xs sm:max-w-sm truncate">
                   {Array.isArray(verse.text) ? verse.text.join(' ') : verse.text}
                 </TableCell>
                 <TableCell className="text-right">
