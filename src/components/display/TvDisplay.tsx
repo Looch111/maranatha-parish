@@ -169,7 +169,7 @@ const ImageSlideshow = () => {
     }, []);
 
     return (
-         <AnimatePresence initial={false} mode="wait">
+         <AnimatePresence initial={false}>
             {PlaceHolderImages.map((image, index) => (
                 index === currentImageIndex && (
                 <motion.div
